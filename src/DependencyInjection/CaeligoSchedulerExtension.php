@@ -39,6 +39,7 @@ class CaeligoSchedulerExtension extends Extension
         $container->setParameter('caeligo_scheduler.state_dir', $stateDir);
         $container->setParameter('caeligo_scheduler.http_trigger.enabled', $config['http_trigger']['enabled']);
         $container->setParameter('caeligo_scheduler.http_trigger.secret', $config['http_trigger']['secret']);
+        $container->setParameter('caeligo_scheduler.base_template', $config['base_template']);
 
         $this->registerServices($container, $config, $phpBinary, $stateDir);
         $this->registerCommands($container);
@@ -114,6 +115,9 @@ class CaeligoSchedulerExtension extends Extension
         $controller->setAutowired(true);
         $controller->setAutoconfigured(true);
         $controller->addTag('controller.service_arguments');
+        $controller->setArgument('$roleDashboard', '%caeligo_scheduler.role_dashboard%');
+        $controller->setArgument('$roleCrontab', '%caeligo_scheduler.role_crontab%');
+        $controller->setArgument('$baseTemplate', '%caeligo_scheduler.base_template%');
         $container->setDefinition(SchedulerDashboardController::class, $controller);
     }
 

@@ -12,7 +12,7 @@ use Caeligo\SchedulerBundle\Service\TaskDispatcher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class SchedulerDashboardController extends AbstractController
 {
@@ -24,6 +24,7 @@ class SchedulerDashboardController extends AbstractController
         private readonly CrontabManager $crontabManager,
         private readonly string $roleDashboard = 'ROLE_ADMIN',
         private readonly string $roleCrontab = 'ROLE_SUPER_ADMIN',
+        private readonly string $baseTemplate = '@CaeligoScheduler/base.html.twig',
     ) {
     }
 
@@ -44,6 +45,7 @@ class SchedulerDashboardController extends AbstractController
         return $this->render('@CaeligoScheduler/dashboard/index.html.twig', [
             'grouped_tasks' => $grouped,
             'tasks' => $tasks,
+            'base_template' => $this->baseTemplate,
         ]);
     }
 
@@ -63,6 +65,7 @@ class SchedulerDashboardController extends AbstractController
             'command' => $command,
             'task_state' => $taskState,
             'command_info' => $commandInfo,
+            'base_template' => $this->baseTemplate,
         ]);
     }
 
@@ -189,6 +192,7 @@ class SchedulerDashboardController extends AbstractController
             'command' => $command,
             'logs' => $logs,
             'command_info' => $commandInfo,
+            'base_template' => $this->baseTemplate,
         ]);
     }
 
@@ -203,6 +207,7 @@ class SchedulerDashboardController extends AbstractController
             'command' => null,
             'logs' => $logs,
             'command_info' => null,
+            'base_template' => $this->baseTemplate,
         ]);
     }
 
@@ -220,6 +225,7 @@ class SchedulerDashboardController extends AbstractController
             'crontab_preview' => $this->crontabManager->buildCrontabLine(),
             'state_dir' => $this->stateManager->getStateDir(),
             'can_manage_crontab' => $this->isGranted($this->roleCrontab),
+            'base_template' => $this->baseTemplate,
         ]);
     }
 
