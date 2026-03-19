@@ -1,0 +1,72 @@
+{% extends '@CaeligoScheduler/base.html.twig' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block body %}
+<h2 class="mb-4">Settings</h2>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Crontab</h5>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <strong>Status:</strong>
+            {% if crontab_status == 'INSTALLED' %}
+                <span class="badge bg-success">Installed</span>
+            {% elseif crontab_status == 'NOT_INSTALLED' %}
+                <span class="badge bg-danger">Not Installed</span>
+            {% else %}
+                <span class="badge bg-secondary">Unsupported</span>
+            {% endif %}
+        </div>
+
+        {% if crontab_entry %}
+            <div class="mb-3">
+                <strong>Current entry:</strong>
+                <code class="d-block mt-1 p-2 bg-light rounded">{{ crontab_entry }}</code>
+            </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <strong>Expected entry:</strong>
+            <code class="d-block mt-1 p-2 bg-light rounded">{{ crontab_preview }}</code>
+        </div>
+
+        {% if can_manage_crontab %}
+            <div class="d-flex gap-2">
+                {% if crontab_status == 'NOT_INSTALLED' %}
+                    <form method="post" action="{{ path('caeligo_scheduler_crontab_install') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('scheduler_crontab_install') }}">
+                        <button type="submit" class="btn btn-success btn-sm">Install Crontab</button>
+                    </form>
+                {% elseif crontab_status == 'INSTALLED' %}
+                    <form method="post" action="{{ path('caeligo_scheduler_crontab_uninstall') }}"
+                          onsubmit="return confirm('Are you sure you want to remove the scheduler crontab entry?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('scheduler_crontab_uninstall') }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Uninstall Crontab</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning mt-2 mb-0">
+                You need elevated permissions to manage crontab entries.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Storage</h5>
+    </div>
+    <div class="card-body">
+        <div class="mb-2">
+            <strong>State directory:</strong> <code>{{ state_dir }}</code>
+        </div>
+        <div class="text-muted">
+            Task state and execution logs are stored as JSON files in this directory.
+        </div>
+    </div>
+</div>
+{% endblock %}

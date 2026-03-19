@@ -1,0 +1,28 @@
+{% extends '@CaeligoScheduler/base.html.twig' %}
+
+{% block title %}Tasks{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Scheduled Tasks</h2>
+    <span class="text-muted">{{ tasks|length }} task{{ tasks|length != 1 ? 's' : '' }} discovered</span>
+</div>
+
+{% if tasks is empty %}
+    <div class="alert alert-info">
+        <strong>No schedulable commands found.</strong>
+        Decorate your Symfony commands with <code>#[AsSchedulableCommand]</code> to make them appear here.
+    </div>
+{% else %}
+    {% for group, group_tasks in grouped_tasks %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">{{ group|capitalize }}</h5>
+            </div>
+            <div class="card-body p-0">
+                {% include '@CaeligoScheduler/_partials/_task_table.html.twig' with { tasks: group_tasks } %}
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,4 @@
+caeligo_scheduler_dashboard:
+    resource: 'Caeligo\SchedulerBundle\Controller\SchedulerDashboardController'
+    type: attribute
+    prefix: '%caeligo_scheduler.route_prefix%'

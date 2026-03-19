@@ -1,0 +1,37 @@
+{% extends '@CaeligoScheduler/base.html.twig' %}
+
+{% block title %}{% if command %}Logs — {{ command }}{% else %}All Logs{% endif %}{% endblock %}
+
+{% block body %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ path('caeligo_scheduler_index') }}">Tasks</a></li>
+        {% if command %}
+            <li class="breadcrumb-item active">Logs: {{ command }}</li>
+        {% else %}
+            <li class="breadcrumb-item active">All Logs</li>
+        {% endif %}
+    </ol>
+</nav>
+
+<h2 class="mb-4">
+    {% if command %}
+        Execution Logs: <code>{{ command }}</code>
+        {% if command_info %}
+            <small class="text-muted d-block fs-6">{{ command_info.description }}</small>
+        {% endif %}
+    {% else %}
+        All Execution Logs
+    {% endif %}
+</h2>
+
+{% if logs is empty %}
+    <div class="alert alert-info">No execution logs found.</div>
+{% else %}
+    {% include '@CaeligoScheduler/_partials/_log_table.html.twig' with { logs: logs, show_command: command is null } %}
+{% endif %}
+
+{% if command %}
+    <a href="{{ path('caeligo_scheduler_index') }}" class="btn btn-outline-secondary">Back to Tasks</a>
+{% endif %}
+{% endblock %}

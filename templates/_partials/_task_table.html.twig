@@ -1,0 +1,67 @@
+<div class="table-responsive">
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Command</th>
+                <th>Description</th>
+                <th>Schedule</th>
+                <th class="text-center">Enabled</th>
+                <th>Last Run</th>
+                <th>Next Run</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+                <tr>
+                    <td><code>{{ task.commandName }}</code></td>
+                    <td class="text-muted">{{ task.description|default('-') }}</td>
+                    <td>
+                        {% if task.expression %}
+                            <span title="{{ task.expression }}">{{ task.expression|scheduler_describe }}</span>
+                        {% elseif task.intervalSeconds %}
+                            {{ null|scheduler_describe(task.intervalSeconds) }}
+                        {% else %}
+                            <span class="text-muted">Not set</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <form method="post" action="{{ path('caeligo_scheduler_task_toggle', { command: task.commandName }) }}" class="d-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('scheduler_toggle_' ~ task.commandName) }}">
+                            <button type="submit" class="btn btn-sm {{ task.enabled ? 'btn-success' : 'btn-outline-secondary' }}" title="{{ task.enabled ? 'Disable' : 'Enable' }}">
+                                {{ task.enabled ? '✓' : '✗' }}
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        {% if task.lastRunStatus %}
+                            {{ task.lastRunStatus|scheduler_badge }}
+                            {% if task.lastRunAt %}
+                                <small class="text-muted ms-1">{{ task.lastRunAt|scheduler_ago }}</small>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">Never</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if task.nextRunAt %}
+                            <small>{{ task.nextRunAt|scheduler_ago }}</small>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ path('caeligo_scheduler_task_edit', { command: task.commandName }) }}" class="btn btn-outline-primary" title="Edit">Edit</a>
+                            <form method="post" action="{{ path('caeligo_scheduler_task_run', { command: task.commandName }) }}" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('scheduler_run_' ~ task.commandName) }}">
+                                <button type="submit" class="btn btn-outline-warning" title="Run Now" onclick="return confirm('Run {{ task.commandName }} now?');">Run</button>
+                            </form>
+                            <a href="{{ path('caeligo_scheduler_task_logs', { command: task.commandName }) }}" class="btn btn-outline-info" title="Logs">Logs</a>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,123 @@
+{% extends '@CaeligoScheduler/base.html.twig' %}
+
+{% block title %}Edit — {{ command }}{% endblock %}
+
+{% block body %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ path('caeligo_scheduler_index') }}">Tasks</a></li>
+        <li class="breadcrumb-item active">{{ command }}</li>
+    </ol>
+</nav>
+
+<h2 class="mb-4">Edit Task: <code>{{ command }}</code></h2>
+
+{% if command_info %}
+    <p class="text-muted">{{ command_info.description }}</p>
+{% endif %}
+
+<form method="post" action="{{ path('caeligo_scheduler_task_edit_submit', { command: command }) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('scheduler_edit_' ~ command) }}">
+
+    <div class="card mb-4">
+        <div class="card-header"><h5 class="mb-0">Schedule</h5></div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Schedule Type</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="schedule_type" id="type_cron" value="cron"
+                           {% if task_state.expression is not null or task_state.intervalSeconds is null %}checked{% endif %}
+                           onchange="document.getElementById('cron_fields').style.display='block'; document.getElementById('interval_fields').style.display='none';">
+                    <label class="form-check-label" for="type_cron">Cron Expression</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="schedule_type" id="type_interval" value="interval"
+                           {% if task_state.intervalSeconds is not null and task_state.expression is null %}checked{% endif %}
+                           onchange="document.getElementById('interval_fields').style.display='block'; document.getElementById('cron_fields').style.display='none';">
+                    <label class="form-check-label" for="type_interval">Simple Interval</label>
+                </div>
+            </div>
+
+            <div id="cron_fields" style="{% if task_state.intervalSeconds is not null and task_state.expression is null %}display:none{% endif %}">
+                <div class="mb-3">
+                    <label for="expression" class="form-label">Cron Expression</label>
+                    <input type="text" class="form-control font-monospace" id="expression" name="expression"
+                           value="{{ task_state.expression }}" placeholder="0 * * * *">
+                    <div class="form-text">
+                        Format: minute hour day month weekday. Example: <code>0 * * * *</code> = every hour, <code>*/5 * * * *</code> = every 5 min
+                    </div>
+                </div>
+            </div>
+
+            <div id="interval_fields" style="{% if task_state.expression is not null or task_state.intervalSeconds is null %}display:none{% endif %}">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="interval_value" class="form-label">Interval</label>
+                        {% set iv = task_state.intervalSeconds ?? 0 %}
+                        {% if iv >= 86400 %}
+                            {% set display_value = (iv / 86400)|round %}
+                            {% set display_unit = 'days' %}
+                        {% elseif iv >= 3600 %}
+                            {% set display_value = (iv / 3600)|round %}
+                            {% set display_unit = 'hours' %}
+                        {% else %}
+                            {% set display_value = (iv / 60)|round %}
+                            {% set display_unit = 'minutes' %}
+                        {% endif %}
+                        <input type="number" class="form-control" id="interval_value" name="interval_value"
+                               value="{{ display_value }}" min="1">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="interval_unit" class="form-label">Unit</label>
+                        <select class="form-select" id="interval_unit" name="interval_unit">
+                            <option value="minutes" {% if display_unit|default('minutes') == 'minutes' %}selected{% endif %}>Minutes</option>
+                            <option value="hours" {% if display_unit|default('') == 'hours' %}selected{% endif %}>Hours</option>
+                            <option value="days" {% if display_unit|default('') == 'days' %}selected{% endif %}>Days</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header"><h5 class="mb-0">Options</h5></div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="arguments" class="form-label">Arguments</label>
+                <input type="text" class="form-control font-monospace" id="arguments" name="arguments"
+                       value="{{ task_state.arguments }}" placeholder="--option=value">
+                <div class="form-text">Additional arguments passed to the command.</div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="hidden" name="prevent_overlap" value="0">
+                <input type="checkbox" class="form-check-input" id="prevent_overlap" name="prevent_overlap" value="1"
+                       {% if task_state.preventOverlap %}checked{% endif %}>
+                <label class="form-check-label" for="prevent_overlap">Prevent Overlap</label>
+                <div class="form-text">Skip execution if the previous run is still in progress.</div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="priority" class="form-label">Priority</label>
+                    <input type="number" class="form-control" id="priority" name="priority"
+                           value="{{ task_state.priority }}" min="0">
+                    <div class="form-text">Lower number = higher priority.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="timeout" class="form-label">Timeout (seconds)</label>
+                    <input type="number" class="form-control" id="timeout" name="timeout"
+                           value="{{ task_state.timeout }}" min="0" placeholder="Default (300s)">
+                    <div class="form-text">Leave empty to use the global default.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save Configuration</button>
+        <a href="{{ path('caeligo_scheduler_index') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

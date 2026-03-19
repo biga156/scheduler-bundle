@@ -1,0 +1,57 @@
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                {% if show_command|default(false) %}
+                    <th>Command</th>
+                {% endif %}
+                <th>Started At</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Exit Code</th>
+                <th>Output</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+                <tr>
+                    {% if show_command|default(false) %}
+                        <td><code>{{ log.command|default('unknown') }}</code></td>
+                    {% endif %}
+                    <td>{{ log.startedAt|default('-') }}</td>
+                    <td>{{ (log.duration|default(null))|scheduler_duration }}</td>
+                    <td>{{ (log.status|default(null))|scheduler_badge }}</td>
+                    <td>{{ log.exitCode|default('-') }}</td>
+                    <td>
+                        {% set has_output = (log.output|default('')) is not empty or (log.errorOutput|default('')) is not empty %}
+                        {% if has_output %}
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#output-{{ loop.index }}">
+                                Show
+                            </button>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if has_output|default(false) %}
+                    <tr class="collapse" id="output-{{ loop.index }}">
+                        <td colspan="{{ show_command|default(false) ? 6 : 5 }}">
+                            {% if log.output|default('') is not empty %}
+                                <div class="mb-2">
+                                    <strong>Output:</strong>
+                                    <div class="output-preview">{{ log.output }}</div>
+                                </div>
+                            {% endif %}
+                            {% if log.errorOutput|default('') is not empty %}
+                                <div>
+                                    <strong>Error Output:</strong>
+                                    <div class="output-preview text-danger">{{ log.errorOutput }}</div>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
