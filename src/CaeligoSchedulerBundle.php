@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Caeligo\SchedulerBundle;
 
-use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class CaeligoSchedulerBundle extends AbstractBundle
+class CaeligoSchedulerBundle extends Bundle
 {
     public function getPath(): string
     {
