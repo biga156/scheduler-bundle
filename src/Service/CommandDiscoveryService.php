@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace Caeligo\SchedulerBundle\Service;
 
 use Caeligo\SchedulerBundle\Attribute\AsSchedulableCommand;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 
 class CommandDiscoveryService
 {
     private ?array $cache = null;
 
+    /**
+     * @param iterable<Command> $commands
+     */
     public function __construct(
-        private readonly ?Application $application = null,
+        private readonly iterable $commands = [],
     ) {
     }
 
@@ -28,11 +30,7 @@ class CommandDiscoveryService
 
         $this->cache = [];
 
-        if ($this->application === null) {
-            return $this->cache;
-        }
-
-        foreach ($this->application->all() as $command) {
+        foreach ($this->commands as $command) {
             $info = $this->extractSchedulableInfo($command);
             if ($info !== null) {
                 $this->cache[$info['commandName']] = $info;

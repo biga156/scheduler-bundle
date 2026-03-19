@@ -11,6 +11,7 @@ use Caeligo\SchedulerBundle\Service\CrontabManager;
 use Caeligo\SchedulerBundle\Service\StateManager;
 use Caeligo\SchedulerBundle\Service\TaskDispatcher;
 use Caeligo\SchedulerBundle\Twig\SchedulerExtension;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -58,7 +59,7 @@ class CaeligoSchedulerExtension extends Extension
 
         // CommandDiscoveryService
         $discoveryService = new Definition(CommandDiscoveryService::class);
-        $discoveryService->setArgument('$application', new Reference('console.application', ContainerBuilder::NULL_ON_INVALID_REFERENCE));
+        $discoveryService->setArgument('$commands', new TaggedIteratorArgument('console.command'));
         $discoveryService->setAutowired(true);
         $container->setDefinition(CommandDiscoveryService::class, $discoveryService);
 

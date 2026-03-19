@@ -4,23 +4,30 @@ A file-based task scheduler bundle for Symfony with a built-in web dashboard and
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+## Why Caeligo?
+
+- **No database required** — Fully file-based storage. No Doctrine, no migrations, no extra infrastructure. Install and run in minutes.
+- **Built-in web dashboard** — A standalone, ready-to-use Twig UI ships with the bundle. Manage tasks, browse logs, and control your crontab — all from the browser, out of the box.
+- **Native PHP attribute discovery** — Use the modern `#[AsSchedulableCommand]` attribute on your commands. No YAML task definitions, no manual registration, no separate entity classes.
+- **Crontab management from CLI and web** — Install or uninstall your system crontab entry with a single command or a button click. No manual server configuration needed.
+- **Shared hosting friendly** — Works without long-running workers, message queues, or Redis. A simple cron job is all you need. An HTTP trigger fallback is also available.
+
 ## Features
 
-- **Attribute-based discovery** — Decorate your Symfony commands with `#[AsSchedulableCommand]` to make them schedulable
 - **Cron expressions & simple intervals** — Both scheduling modes supported
-- **File-based storage** — No database tables or migrations needed; state stored in JSON files
-- **Web dashboard** — Standalone Twig-based UI for managing tasks, viewing logs, and configuring crontab
-- **Full CLI** — 9 console commands for complete terminal-based management
-- **Crontab management** — Install/uninstall the scheduler crontab entry from CLI or web UI
+- **9 CLI commands** — Full terminal-based management: list, enable, disable, run, logs, install, uninstall, and more
 - **Overlap prevention** — Skip task execution when a previous run is still in progress
 - **Role-based access** — Configurable role requirements for dashboard and crontab management
-- **CSRF protection** — All POST actions are CSRF-protected
-- **Log retention** — Automatic cleanup of old execution logs
+- **CSRF protection** — All dashboard POST actions are CSRF-protected
+- **Automatic log retention** — Old execution logs are cleaned up automatically
+- **EasyAdmin integration** — Optional integration for projects already using EasyAdmin
+- **Zero-config defaults** — Sensible defaults let you get started with minimal configuration
 
 ## Requirements
 
 - PHP 8.2+
-- Symfony 6.4+ or 7.0+
+- Symfony 6.4 or 7.x
+- No database or additional services required
 
 ## Installation
 
@@ -130,11 +137,11 @@ php bin/console caeligo:scheduler:status
 
 ## Web Dashboard
 
-The standalone web dashboard is available at the configured `route_prefix` (default: `/scheduler`).
+A standalone web dashboard ships with the bundle — no separate admin package or frontend build step needed. Available at the configured `route_prefix` (default: `/scheduler`).
 
-- **Tasks** — View, enable/disable, edit, and run tasks
-- **Logs** — View execution history with output details
-- **Settings** — Manage crontab installation
+- **Tasks** — View, enable/disable, edit, and run tasks directly from the browser
+- **Logs** — View execution history with full output details and status indicators
+- **Settings** — Install or remove the system crontab entry with a single click
 
 > For dashboard details, see [Dashboard Guide](docs/dashboard.md).
 
