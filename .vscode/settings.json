@@ -1,6 +1,6 @@
 {
     "projectColors.mainColor": "#49dcdf",
-    "window.title": "caeligo-scheduler-bundle-plan",
+    "window.title": "caeligo-scheduler-bundle",
     "workbench.colorCustomizations": {
         "statusBarItem.warningBackground": "#49dcdf",
         "statusBarItem.warningForeground": "#000000",
