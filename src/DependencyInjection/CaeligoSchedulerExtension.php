@@ -98,6 +98,7 @@ class CaeligoSchedulerExtension extends Extension
             \Caeligo\SchedulerBundle\Command\SchedulerInstallCommand::class,
             \Caeligo\SchedulerBundle\Command\SchedulerUninstallCommand::class,
             \Caeligo\SchedulerBundle\Command\SchedulerLogsCommand::class,
+            \Caeligo\SchedulerBundle\Command\SchedulerLogsPurgeCommand::class,
         ];
 
         foreach ($commandClasses as $class) {
