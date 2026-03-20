@@ -21,7 +21,17 @@
                     <td>{{ log.startedAt|default('-') }}</td>
                     <td>{{ (log.duration|default(null))|scheduler_duration }}</td>
                     <td>{{ (log.status|default(null))|scheduler_badge }}</td>
-                    <td>{{ log.exitCode|default('-') }}</td>
+                    <td>
+                        {% if log.exitCode|default(null) is not null %}
+                            <span class="{{ log.exitCode != 0 ? 'text-danger fw-bold' : '' }}">{{ log.exitCode }}</span>
+                            {% set exit_desc = log.exitCode|scheduler_exit_code %}
+                            {% if exit_desc %}
+                                <small class="text-muted d-block">{{ exit_desc }}</small>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                     <td>
                         {% set has_output = (log.output|default('')) is not empty or (log.errorOutput|default('')) is not empty %}
                         {% if has_output %}

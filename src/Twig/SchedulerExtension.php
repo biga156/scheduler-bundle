@@ -23,6 +23,7 @@ class SchedulerExtension extends AbstractExtension
             new TwigFilter('scheduler_badge', $this->badge(...), ['is_safe' => ['html']]),
             new TwigFilter('scheduler_duration', $this->formatDuration(...)),
             new TwigFilter('scheduler_ago', $this->timeAgo(...)),
+            new TwigFilter('scheduler_exit_code', $this->exitCodeDescription(...)),
         ];
     }
 
@@ -122,5 +123,32 @@ class SchedulerExtension extends AbstractExtension
         $days = (int) ($diff / 86400);
 
         return \sprintf('%d day%s ago', $days, $days !== 1 ? 's' : '');
+    }
+
+    public function exitCodeDescription(?int $exitCode): string
+    {
+        if ($exitCode === null) {
+            return '';
+        }
+
+        return match ($exitCode) {
+            0 => 'Success',
+            1 => 'General error',
+            2 => 'Misuse of shell command / Invalid arguments',
+            3 => 'Command could not be executed',
+            7 => 'Runtime error (e.g. missing service, failed dependency)',
+            126 => 'Command found but not executable (permission denied)',
+            127 => 'Command not found',
+            128 => 'Invalid exit argument',
+            130 => 'Terminated by Ctrl+C (SIGINT)',
+            134 => 'Abort signal (SIGABRT)',
+            137 => 'Killed (SIGKILL) — likely out of memory',
+            139 => 'Segmentation fault (SIGSEGV)',
+            143 => 'Terminated (SIGTERM)',
+            255 => 'Exit status out of range',
+            default => ($exitCode > 128 && $exitCode < 165)
+                ? \sprintf('Terminated by signal %d', $exitCode - 128)
+                : '',
+        };
     }
 }

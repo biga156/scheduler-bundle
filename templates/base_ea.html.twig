@@ -1,0 +1,230 @@
+{# EasyAdmin-integrated base template for Caeligo Scheduler.
+   Use by setting caeligo_scheduler.base_template: '@CaeligoScheduler/base_ea.html.twig' #}
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block body_class 'page-content ea-scheduler' %}
+
+{% block content_title %}
+    <i class="fa fa-clock"></i> {% block title %}Scheduler{% endblock %}
+{% endblock %}
+
+{% block main %}
+    <div class="scheduler-nav mb-3">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a href="{{ path('caeligo_scheduler_index') }}"
+                   class="nav-link {% if app.request.attributes.get('_route') == 'caeligo_scheduler_index' %}active{% endif %}">
+                    <i class="fa fa-list"></i> Tasks
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ path('caeligo_scheduler_logs') }}"
+                   class="nav-link {% if app.request.attributes.get('_route') in ['caeligo_scheduler_logs', 'caeligo_scheduler_task_logs'] %}active{% endif %}">
+                    <i class="fa fa-file-lines"></i> Logs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ path('caeligo_scheduler_settings') }}"
+                   class="nav-link {% if app.request.attributes.get('_route') == 'caeligo_scheduler_settings' %}active{% endif %}">
+                    <i class="fa fa-gear"></i> Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    {% for type in ['success', 'danger', 'warning', 'info'] %}
+        {% for message in app.flashes(type) %}
+            <div class="alert alert-{{ type }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% block scheduler_content %}{% endblock %}
+{% endblock %}
+
+{% block configured_stylesheets %}
+    {{ parent() }}
+    <style>
+        /* ===== General typography ===== */
+        .ea-scheduler { color: var(--text-color); }
+        .ea-scheduler .text-muted { color: var(--text-muted) !important; }
+        .ea-scheduler code {
+            color: var(--text-color);
+            background: var(--secondary-bg, var(--bs-tertiary-bg));
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .ea-scheduler a { color: var(--link-color); }
+        .ea-scheduler a:hover { color: var(--link-hover-color, var(--link-color)); }
+        .ea-scheduler h2, .ea-scheduler h5 { color: var(--text-color); }
+
+        /* ===== Nav tabs ===== */
+        .ea-scheduler .nav-tabs {
+            border-bottom-color: var(--border-color, var(--form-tabs-border-color));
+        }
+        .ea-scheduler .nav-tabs .nav-link {
+            color: var(--text-muted);
+            border-color: transparent;
+        }
+        .ea-scheduler .nav-tabs .nav-link:hover {
+            color: var(--text-color);
+            border-color: var(--border-color, var(--form-tabs-border-color));
+            background: var(--tertiary-bg, transparent);
+        }
+        .ea-scheduler .nav-tabs .nav-link.active {
+            color: var(--text-color);
+            background: var(--content-bg);
+            border-color: var(--border-color, var(--form-tabs-border-color));
+            border-bottom-color: var(--content-bg);
+        }
+
+        /* ===== Cards ===== */
+        .ea-scheduler .card {
+            background: var(--content-bg);
+            border-color: var(--border-color, var(--content-section-border-color));
+        }
+        .ea-scheduler .card-header {
+            background: var(--tertiary-bg, var(--secondary-bg));
+            border-bottom-color: var(--border-color, var(--content-section-border-color));
+            color: var(--text-color);
+        }
+        .ea-scheduler .card-body {
+            color: var(--text-color);
+        }
+
+        /* ===== Tables ===== */
+        .ea-scheduler .table { color: var(--table-cell-color, var(--text-color)); }
+        .ea-scheduler .table thead th {
+            color: var(--table-thead-color, var(--text-color));
+            background: var(--tertiary-bg, var(--secondary-bg));
+            border-bottom-color: var(--table-cell-border-color, var(--border-color));
+        }
+        .ea-scheduler .table td {
+            vertical-align: middle;
+            border-bottom-color: var(--table-cell-border-color, var(--border-color));
+        }
+        .ea-scheduler .table-hover tbody tr:hover {
+            background: var(--table-hover-cell-bg, rgba(0,0,0,.02));
+        }
+
+        /* ===== Badges (Bootstrap bg-* → EA variables) ===== */
+        .ea-scheduler .badge { font-size: 0.8em; }
+        .ea-scheduler .badge.bg-success {
+            background-color: var(--badge-success-bg) !important;
+            color: var(--badge-success-color) !important;
+            box-shadow: var(--badge-success-box-shadow);
+        }
+        .ea-scheduler .badge.bg-danger {
+            background-color: var(--badge-danger-bg) !important;
+            color: var(--badge-danger-color) !important;
+            box-shadow: var(--badge-danger-box-shadow);
+        }
+        .ea-scheduler .badge.bg-warning {
+            background-color: var(--badge-warning-bg) !important;
+            color: var(--badge-warning-color) !important;
+            box-shadow: var(--badge-warning-box-shadow);
+        }
+        .ea-scheduler .badge.bg-secondary {
+            background-color: var(--badge-secondary-bg) !important;
+            color: var(--badge-secondary-color) !important;
+            box-shadow: var(--badge-secondary-box-shadow);
+        }
+        .ea-scheduler .badge.bg-info {
+            background-color: var(--badge-info-bg) !important;
+            color: var(--badge-info-color) !important;
+            box-shadow: var(--badge-info-box-shadow);
+        }
+
+        /* ===== Alerts ===== */
+        .ea-scheduler .alert-success {
+            background: var(--alert-success-bg);
+            color: var(--alert-success-color);
+            border-color: var(--alert-success-border-color);
+        }
+        .ea-scheduler .alert-danger {
+            background: var(--alert-danger-bg);
+            color: var(--alert-danger-color);
+            border-color: var(--alert-danger-border-color);
+        }
+        .ea-scheduler .alert-warning {
+            background: var(--alert-warning-bg);
+            color: var(--alert-warning-color);
+            border-color: var(--alert-warning-border-color);
+        }
+        .ea-scheduler .alert-info {
+            background: var(--alert-info-bg);
+            color: var(--alert-info-color);
+            border-color: var(--alert-info-border-color);
+        }
+
+        /* ===== Forms ===== */
+        .ea-scheduler .form-label { color: var(--form-label-color, var(--text-color)); }
+        .ea-scheduler .form-control,
+        .ea-scheduler .form-select {
+            background-color: var(--form-control-bg, var(--bs-body-bg));
+            border-color: var(--form-input-border-color, var(--bs-border-color));
+            color: var(--form-input-text-color, var(--text-color));
+        }
+        .ea-scheduler .form-control:focus,
+        .ea-scheduler .form-select:focus {
+            border-color: var(--color-primary, #86b7fe);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #0d6efd) 25%, transparent);
+        }
+        .ea-scheduler .form-text { color: var(--form-help-color, var(--text-muted)); }
+        .ea-scheduler .form-check-label { color: var(--text-color); }
+
+        /* ===== Buttons ===== */
+        .ea-scheduler .btn-outline-secondary {
+            color: var(--text-muted);
+            border-color: var(--border-color, var(--bs-border-color));
+        }
+        .ea-scheduler .btn-outline-secondary:hover {
+            background: var(--secondary-bg, var(--bs-secondary-bg));
+            color: var(--text-color);
+        }
+        .ea-scheduler .btn-outline-primary {
+            color: var(--color-primary, var(--bs-primary));
+            border-color: var(--color-primary, var(--bs-primary));
+        }
+        .ea-scheduler .btn-outline-warning {
+            color: var(--badge-warning-color, var(--bs-warning));
+            border-color: var(--badge-warning-color, var(--bs-warning));
+        }
+        .ea-scheduler .btn-outline-info {
+            color: var(--badge-info-color, var(--bs-info));
+            border-color: var(--badge-info-color, var(--bs-info));
+        }
+
+        /* ===== Breadcrumbs ===== */
+        .ea-scheduler .breadcrumb-item a { color: var(--link-color); }
+        .ea-scheduler .breadcrumb-item.active { color: var(--text-muted); }
+        .ea-scheduler .breadcrumb-item + .breadcrumb-item::before { color: var(--text-muted); }
+
+        /* ===== Output preview & code blocks ===== */
+        .ea-scheduler .output-preview {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            background: var(--secondary-bg, var(--bs-body-bg));
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color, var(--bs-border-color));
+            color: var(--text-color);
+        }
+        .ea-scheduler .scheduler-code-block {
+            background: var(--secondary-bg, var(--bs-tertiary-bg));
+            border: 1px solid var(--border-color, var(--bs-border-color));
+            color: var(--text-color);
+        }
+
+        /* ===== Help panels ===== */
+        .ea-scheduler .card-title { color: var(--text-color); }
+        .ea-scheduler dl dt { color: var(--text-color); font-weight: 600; }
+        .ea-scheduler dl dd { color: var(--text-color); }
+    </style>
+{% endblock %}

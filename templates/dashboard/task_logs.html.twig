@@ -2,7 +2,7 @@
 
 {% block title %}{% if command %}Logs — {{ command }}{% else %}All Logs{% endif %}{% endblock %}
 
-{% block body %}
+{% block scheduler_content %}
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{{ path('caeligo_scheduler_index') }}">Tasks</a></li>
@@ -47,7 +47,28 @@
                     <span class="badge bg-secondary">Skipped</span> — Was skipped (e.g. overlap prevention).
                 </dd>
                 <dt class="col-sm-3">Exit Code</dt>
-                <dd class="col-sm-9">The process exit code. <code>0</code> = success, any other value indicates an error.</dd>
+                <dd class="col-sm-9">
+                    The process exit code. <code>0</code> = success, any other value indicates an error.
+                    <details class="mt-1">
+                        <summary class="text-muted" style="cursor:pointer">Common exit codes</summary>
+                        <table class="table table-sm mt-1 mb-0" style="font-size: 0.85em;">
+                            <tbody>
+                                <tr><td><code>0</code></td><td>Success</td></tr>
+                                <tr><td><code>1</code></td><td>General error</td></tr>
+                                <tr><td><code>2</code></td><td>Invalid arguments / misuse of command</td></tr>
+                                <tr><td><code>3</code></td><td>Command could not be executed</td></tr>
+                                <tr><td><code>7</code></td><td>Runtime error (missing service, failed dependency)</td></tr>
+                                <tr><td><code>126</code></td><td>Permission denied (not executable)</td></tr>
+                                <tr><td><code>127</code></td><td>Command not found</td></tr>
+                                <tr><td><code>130</code></td><td>Interrupted (SIGINT / Ctrl+C)</td></tr>
+                                <tr><td><code>137</code></td><td>Killed (SIGKILL) — likely out of memory</td></tr>
+                                <tr><td><code>139</code></td><td>Segmentation fault (SIGSEGV)</td></tr>
+                                <tr><td><code>143</code></td><td>Terminated (SIGTERM)</td></tr>
+                                <tr><td><code>255</code></td><td>Exit status out of range</td></tr>
+                            </tbody>
+                        </table>
+                    </details>
+                </dd>
                 <dt class="col-sm-3">Output</dt>
                 <dd class="col-sm-9">Click <strong>Show</strong> to expand the stdout and stderr output captured during execution.</dd>
             </dl>

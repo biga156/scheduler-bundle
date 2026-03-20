@@ -36,6 +36,12 @@
                     <td>
                         {% if task.lastRunStatus %}
                             {{ task.lastRunStatus|scheduler_badge }}
+                            {% if task.lastRunExitCode is defined and task.lastRunExitCode is not null and task.lastRunExitCode != 0 %}
+                                {% set exit_desc = task.lastRunExitCode|scheduler_exit_code %}
+                                <small class="text-danger d-block">
+                                    Exit {{ task.lastRunExitCode }}{% if exit_desc %}: {{ exit_desc }}{% endif %}
+                                </small>
+                            {% endif %}
                             {% if task.lastRunAt %}
                                 <small class="text-muted ms-1">{{ task.lastRunAt|scheduler_ago }}</small>
                             {% endif %}

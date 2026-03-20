@@ -2,7 +2,7 @@
 
 {% block title %}Edit — {{ command }}{% endblock %}
 
-{% block body %}
+{% block scheduler_content %}
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{{ path('caeligo_scheduler_index') }}">Tasks</a></li>
@@ -53,24 +53,47 @@
                 <label class="form-label fw-bold">Schedule Type</label>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="schedule_type" id="type_cron" value="cron"
-                           {% if task_state.expression is not null or task_state.intervalSeconds is null %}checked{% endif %}
-                           onchange="document.getElementById('cron_fields').style.display='block'; document.getElementById('interval_fields').style.display='none';">
+                           {% if task_state.expression is not null or task_state.intervalSeconds is null %}checked{% endif %}>
                     <label class="form-check-label" for="type_cron">Cron Expression</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="schedule_type" id="type_interval" value="interval"
-                           {% if task_state.intervalSeconds is not null and task_state.expression is null %}checked{% endif %}
-                           onchange="document.getElementById('interval_fields').style.display='block'; document.getElementById('cron_fields').style.display='none';">
+                           {% if task_state.intervalSeconds is not null and task_state.expression is null %}checked{% endif %}>
                     <label class="form-check-label" for="type_interval">Simple Interval</label>
                 </div>
             </div>
 
             <div id="cron_fields" style="{% if task_state.intervalSeconds is not null and task_state.expression is null %}display:none{% endif %}">
                 <div class="mb-3">
+                    <label class="form-label fw-bold">Quick Presets</label>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        {% set presets = [
+                            { label: '1 min',    cron: '* * * * *' },
+                            { label: '5 min',    cron: '*/5 * * * *' },
+                            { label: '10 min',   cron: '*/10 * * * *' },
+                            { label: '15 min',   cron: '*/15 * * * *' },
+                            { label: '30 min',   cron: '*/30 * * * *' },
+                            { label: '1 hour',   cron: '0 * * * *' },
+                            { label: '6 hours',  cron: '0 */6 * * *' },
+                            { label: '12 hours', cron: '0 */12 * * *' },
+                            { label: 'Daily',    cron: '0 0 * * *' },
+                            { label: 'Weekly',   cron: '0 0 * * 1' },
+                            { label: 'Monthly',  cron: '0 0 1 * *' },
+                        ] %}
+                        {% for preset in presets %}
+                            <button type="button" class="btn btn-sm btn-outline-primary cron-preset-btn"
+                                    data-cron="{{ preset.cron }}"
+                                    title="{{ preset.cron }}">
+                                {{ preset.label }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-3">
                     <label for="expression" class="form-label">Cron Expression</label>
                     <input type="text" class="form-control font-monospace" id="expression" name="expression"
                            value="{{ task_state.expression }}" placeholder="0 * * * *">
-                    <div class="form-text">
+                    <div id="cron-preview" class="form-text">
                         Format: minute hour day month weekday. Example: <code>0 * * * *</code> = every hour, <code>*/5 * * * *</code> = every 5 min
                     </div>
                 </div>
@@ -147,4 +170,75 @@
         <a href="{{ path('caeligo_scheduler_index') }}" class="btn btn-outline-secondary">Cancel</a>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var cronFields = document.getElementById('cron_fields');
+    var intervalFields = document.getElementById('interval_fields');
+    var typeCron = document.getElementById('type_cron');
+    var typeInterval = document.getElementById('type_interval');
+
+    function toggleScheduleType() {
+        var isCron = typeCron.checked;
+        cronFields.style.display = isCron ? 'block' : 'none';
+        intervalFields.style.display = isCron ? 'none' : 'block';
+        cronFields.querySelectorAll('input, select').forEach(function(el) { el.disabled = !isCron; });
+        intervalFields.querySelectorAll('input, select').forEach(function(el) { el.disabled = isCron; });
+    }
+
+    typeCron.addEventListener('change', toggleScheduleType);
+    typeInterval.addEventListener('change', toggleScheduleType);
+    toggleScheduleType();
+
+    var cronInput = document.getElementById('expression');
+    var presetBtns = document.querySelectorAll('.cron-preset-btn');
+    var cronDescriptions = {
+        '* * * * *': 'Every minute',
+        '*/5 * * * *': 'Every 5 minutes',
+        '*/10 * * * *': 'Every 10 minutes',
+        '*/15 * * * *': 'Every 15 minutes',
+        '*/30 * * * *': 'Every 30 minutes',
+        '0 * * * *': 'Every hour (at :00)',
+        '0 */6 * * *': 'Every 6 hours',
+        '0 */12 * * *': 'Every 12 hours',
+        '0 0 * * *': 'Daily at midnight',
+        '0 0 * * 1': 'Weekly on Monday at midnight',
+        '0 0 1 * *': 'Monthly on the 1st at midnight'
+    };
+
+    function updatePresetHighlight() {
+        var val = cronInput.value.trim();
+        presetBtns.forEach(function(btn) {
+            if (btn.getAttribute('data-cron') === val) {
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-primary');
+            } else {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-primary');
+            }
+        });
+        var preview = document.getElementById('cron-preview');
+        if (cronDescriptions[val]) {
+            preview.innerHTML = '<strong>' + cronDescriptions[val] + '</strong> — <code>' + val + '</code>';
+        } else if (val) {
+            preview.innerHTML = 'Custom expression: <code>' + val + '</code>';
+        } else {
+            preview.textContent = 'Format: minute hour day month weekday';
+        }
+    }
+
+    presetBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            cronInput.value = this.getAttribute('data-cron');
+            typeCron.checked = true;
+            toggleScheduleType();
+            updatePresetHighlight();
+            cronInput.focus();
+        });
+    });
+
+    cronInput.addEventListener('input', updatePresetHighlight);
+    updatePresetHighlight();
+});
+</script>
 {% endblock %}
