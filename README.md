@@ -15,7 +15,7 @@ A file-based task scheduler bundle for Symfony with a built-in web dashboard and
 ## Features
 
 - **Cron expressions & simple intervals** — Both scheduling modes supported
-- **9 CLI commands** — Full terminal-based management: list, enable, disable, run, logs, install, uninstall, and more
+- **10 CLI commands** — Full terminal-based management: list, status, enable, disable, run, logs, purge, install, uninstall, and more
 - **Overlap prevention** — Skip task execution when a previous run is still in progress
 - **Role-based access** — Configurable role requirements for dashboard and crontab management
 - **CSRF protection** — All dashboard POST actions are CSRF-protected
@@ -132,6 +132,7 @@ php bin/console caeligo:scheduler:status
 | `caeligo:scheduler:install` | Install the scheduler crontab entry |
 | `caeligo:scheduler:uninstall` | Remove the scheduler crontab entry |
 | `caeligo:scheduler:logs` | Show recent task execution logs |
+| `caeligo:scheduler:purge-logs [command]` | Purge execution logs (all or per task) |
 
 > For detailed CLI usage, see [CLI Reference](docs/cli.md).
 
@@ -140,7 +141,7 @@ php bin/console caeligo:scheduler:status
 A standalone web dashboard ships with the bundle — no separate admin package or frontend build step needed. Available at the configured `route_prefix` (default: `/scheduler`).
 
 - **Tasks** — View, enable/disable, edit, and run tasks directly from the browser
-- **Logs** — View execution history with full output details and status indicators
+- **Logs** — View execution history with full output details and status indicators. Clear logs per task or globally.
 - **Settings** — Install or remove the system crontab entry with a single click
 
 > For dashboard details, see [Dashboard Guide](docs/dashboard.md).
@@ -158,6 +159,42 @@ A standalone web dashboard ships with the bundle — no separate admin package o
 | [HTTP Trigger](docs/http-trigger.md) | Shared hosting fallback via HTTP trigger |
 | [EasyAdmin Integration](docs/easyadmin.md) | Optional EasyAdmin dashboard integration |
 | [Testing](docs/testing.md) | Running the test suite |
+
+## Makefile Integration (Optional)
+
+If your project uses a Makefile (common in Symfony projects), you can add convenient shortcut targets:
+
+```makefile
+SYMFONY_CONSOLE = php bin/console
+
+cron-list: ## List all schedulable commands
+	@$(SYMFONY_CONSOLE) caeligo:scheduler:list
+
+cron-status: ## Scheduler health status
+	@$(SYMFONY_CONSOLE) caeligo:scheduler:status
+
+cron-run: ## Run overdue tasks once
+	$(SYMFONY_CONSOLE) caeligo:scheduler:run
+
+cron-run-task: ## Run a specific task (usage: make cron-run-task CMD=app:my:command)
+ifndef CMD
+	@echo "ERROR: CMD is required. Usage: make cron-run-task CMD=app:some:command"
+	@exit 1
+endif
+	$(SYMFONY_CONSOLE) caeligo:scheduler:run-now $(CMD)
+
+cron-logs: ## Show scheduler execution logs
+	@$(SYMFONY_CONSOLE) caeligo:scheduler:logs
+
+cron-logs-purge: ## Purge all scheduler logs
+	@$(SYMFONY_CONSOLE) caeligo:scheduler:purge-logs
+
+cron-install: ## Install crontab entry
+	$(SYMFONY_CONSOLE) caeligo:scheduler:install
+
+cron-uninstall: ## Uninstall crontab entry
+	$(SYMFONY_CONSOLE) caeligo:scheduler:uninstall
+```
 
 ## License
 

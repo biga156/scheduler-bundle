@@ -1,6 +1,6 @@
 # CLI Reference
 
-All 9 console commands provided by the Caeligo Scheduler Bundle.
+All 10 console commands provided by the Caeligo Scheduler Bundle.
 
 ## caeligo:scheduler:run
 
@@ -63,9 +63,25 @@ php bin/console caeligo:scheduler:status
 
 Displays:
 - Crontab installation status
-- State directory location
 - Task counts (total, enabled, failed)
-- Recent execution activity
+- Per-task status table: enabled, schedule description, last run with result, next run
+
+**Example output:**
+```
+Caeligo Scheduler Status
+========================
+
+  Crontab: INSTALLED
+  Tasks: 3 total, 3 enabled, 0 failed
+
+ ------------- ---- ---------------- ---------------------- ------------------
+  Command       On   Schedule         Last Run                Next Run
+ ------------- ---- ---------------- ---------------------- ------------------
+  app:cleanup   ✓    Daily at 03:00   2026-03-20 03:00 success   2026-03-21 03:00
+  app:report    ✓    Every 5 minutes  2026-03-20 09:15 success   2026-03-20 09:20
+  app:billing   ✓    Monthly on 1st   - -                       2026-04-01 00:00
+ ------------- ---- ---------------- ---------------------- ------------------
+```
 
 ---
 
@@ -179,3 +195,20 @@ php bin/console caeligo:scheduler:logs --status=failed
   app:report:daily     2026-03-19T14:00:00+00:00      failed    1           0.567s
  -------------------- ------------------------------ --------- ----------- ----------
 ```
+
+---
+
+## caeligo:scheduler:purge-logs
+
+Purge execution logs — all logs or only for a specific command.
+
+```bash
+php bin/console caeligo:scheduler:purge-logs
+php bin/console caeligo:scheduler:purge-logs app:cleanup:expired
+```
+
+| Argument | Description |
+|----------|-------------|
+| `command-name` | *(optional)* Clear logs only for this command. Omit to clear all. |
+
+Requires interactive confirmation (answers "no" by default with `--no-interaction`).

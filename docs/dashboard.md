@@ -57,6 +57,8 @@ Log entries include:
 - Exit Code
 - Output (expandable, click "Show" to reveal)
 
+Both log pages include a **Clear Logs** button (per-task or global) to purge execution history. The action requires confirmation and is CSRF-protected.
+
 ### Settings (`/scheduler/settings`)
 
 System configuration and crontab management:
@@ -79,7 +81,9 @@ System configuration and crontab management:
 | POST | `/scheduler/task/{command}/toggle` | Toggle enable/disable |
 | POST | `/scheduler/task/{command}/run` | Run task now |
 | GET | `/scheduler/task/{command}/logs` | Task execution logs |
+| POST | `/scheduler/task/{command}/logs/clear` | Clear task logs |
 | GET | `/scheduler/logs` | All execution logs |
+| POST | `/scheduler/logs/clear` | Clear all logs |
 | GET | `/scheduler/settings` | Settings page |
 | POST | `/scheduler/crontab/install` | Install crontab |
 | POST | `/scheduler/crontab/uninstall` | Remove crontab |
