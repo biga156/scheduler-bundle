@@ -111,7 +111,7 @@ class CrontabManager
     public function buildCrontabLine(): string
     {
         return \sprintf(
-            '* * * * * cd %s && %s bin/console caeligo:scheduler:run >> /dev/null 2>&1 %s',
+            '* * * * * (cd %s && %s bin/console caeligo:scheduler:run) >> /dev/null 2>&1 %s',
             escapeshellarg($this->projectDir),
             escapeshellarg($this->phpBinary),
             self::MARKER,
