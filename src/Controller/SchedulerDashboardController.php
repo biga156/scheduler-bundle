@@ -196,6 +196,23 @@ class SchedulerDashboardController extends AbstractController
         ]);
     }
 
+    #[Route('/task/{command}/logs/clear', name: 'caeligo_scheduler_task_logs_clear', methods: ['POST'], requirements: ['command' => '.+'])]
+    public function clearTaskLogs(Request $request, string $command): Response
+    {
+        $this->denyAccessUnlessGranted($this->roleDashboard);
+
+        if (!$this->isCsrfTokenValid('scheduler_clear_logs_' . $command, $request->request->getString('_token'))) {
+            $this->addFlash('danger', 'Invalid CSRF token.');
+
+            return $this->redirectToRoute('caeligo_scheduler_task_logs', ['command' => $command]);
+        }
+
+        $removed = $this->stateManager->clearLogs($command);
+        $this->addFlash('success', \sprintf('Cleared %d log entries for "%s".', $removed, $command));
+
+        return $this->redirectToRoute('caeligo_scheduler_task_logs', ['command' => $command]);
+    }
+
     #[Route('/logs', name: 'caeligo_scheduler_logs', methods: ['GET'])]
     public function allLogs(): Response
     {
@@ -209,6 +226,23 @@ class SchedulerDashboardController extends AbstractController
             'command_info' => null,
             'base_template' => $this->baseTemplate,
         ]);
+    }
+
+    #[Route('/logs/clear', name: 'caeligo_scheduler_logs_clear', methods: ['POST'])]
+    public function clearAllLogs(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted($this->roleDashboard);
+
+        if (!$this->isCsrfTokenValid('scheduler_clear_all_logs', $request->request->getString('_token'))) {
+            $this->addFlash('danger', 'Invalid CSRF token.');
+
+            return $this->redirectToRoute('caeligo_scheduler_logs');
+        }
+
+        $removed = $this->stateManager->clearAllLogs();
+        $this->addFlash('success', \sprintf('Cleared %d log entries.', $removed));
+
+        return $this->redirectToRoute('caeligo_scheduler_logs');
     }
 
     #[Route('/settings', name: 'caeligo_scheduler_settings', methods: ['GET'])]

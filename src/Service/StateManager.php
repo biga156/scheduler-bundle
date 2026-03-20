@@ -224,6 +224,47 @@ class StateManager
         return \array_slice($allLogs, 0, $limit);
     }
 
+    public function clearLogs(string $commandName): int
+    {
+        $safeCommandName = $this->sanitizeCommandName($commandName);
+        $logFile = $this->logsDir . '/' . $safeCommandName . '.jsonl';
+
+        if (!file_exists($logFile)) {
+            return 0;
+        }
+
+        $lines = file($logFile, \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES);
+        $count = $lines !== false ? \count($lines) : 0;
+
+        $this->filesystem->remove($logFile);
+
+        return $count;
+    }
+
+    public function clearAllLogs(): int
+    {
+        if (!is_dir($this->logsDir)) {
+            return 0;
+        }
+
+        $files = glob($this->logsDir . '/*.jsonl');
+        if ($files === false || $files === []) {
+            return 0;
+        }
+
+        $totalRemoved = 0;
+        foreach ($files as $file) {
+            $lines = file($file, \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES);
+            $totalRemoved += $lines !== false ? \count($lines) : 0;
+        }
+
+        foreach ($files as $file) {
+            $this->filesystem->remove($file);
+        }
+
+        return $totalRemoved;
+    }
+
     public function cleanupLogs(): int
     {
         if (!is_dir($this->logsDir)) {

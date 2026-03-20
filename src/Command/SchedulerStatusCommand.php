@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Caeligo\SchedulerBundle\Command;
 
+use Caeligo\SchedulerBundle\Service\CronExpressionParser;
 use Caeligo\SchedulerBundle\Service\CrontabManager;
 use Caeligo\SchedulerBundle\Service\StateManager;
 use Caeligo\SchedulerBundle\Service\TaskDispatcher;
@@ -23,6 +24,7 @@ class SchedulerStatusCommand extends Command
         private readonly TaskDispatcher $taskDispatcher,
         private readonly CrontabManager $crontabManager,
         private readonly StateManager $stateManager,
+        private readonly CronExpressionParser $cronParser,
     ) {
         parent::__construct();
     }
@@ -46,30 +48,35 @@ class SchedulerStatusCommand extends Command
             $io->writeln(\sprintf('  Entry:   %s', $entry));
         }
 
-        // State
-        $io->writeln(\sprintf('  State dir: %s', $this->stateManager->getStateDir()));
-
-        // Tasks
+        // Tasks summary
         $tasks = $this->taskDispatcher->getAllTasks();
         $total = \count($tasks);
         $enabled = \count(array_filter($tasks, static fn (array $t): bool => $t['enabled']));
         $failed = \count(array_filter($tasks, static fn (array $t): bool => $t['lastRunStatus'] === 'failed'));
 
         $io->newLine();
-        $io->writeln(\sprintf('  Tasks:   %d total, %d enabled, %d failed', $total, $enabled, $failed));
+        $io->writeln(\sprintf('  Tasks: %d total, %d enabled, %d failed', $total, $enabled, $failed));
 
-        // Per-task current status (matches UI)
+        // Per-task status table
         $io->newLine();
-        $io->section('Task Status');
 
         $taskRows = [];
         foreach ($tasks as $task) {
+            $enabledLabel = $task['enabled'] ? '<info>✓</info>' : '<fg=red>✗</>';
+
+            $schedule = '-';
+            if ($task['expression'] !== null) {
+                $schedule = $this->cronParser->describe($task['expression']);
+            } elseif ($task['intervalSeconds'] !== null) {
+                $schedule = $this->cronParser->describeInterval($task['intervalSeconds']);
+            }
+
             $status = match ($task['lastRunStatus']) {
                 'success' => '<info>success</info>',
                 'failed' => '<fg=red>failed</>',
                 'running' => '<fg=yellow>running</>',
                 'skipped' => '<fg=gray>skipped</>',
-                default => $task['lastRunStatus'] ?? '<fg=gray>never</>',
+                default => '<fg=gray>-</>',
             };
 
             $lastRun = '-';
@@ -86,37 +93,14 @@ class SchedulerStatusCommand extends Command
 
             $taskRows[] = [
                 $task['commandName'],
-                $task['enabled'] ? '<info>✓</info>' : '<fg=red>✗</>',
-                $status,
-                $lastRun,
+                $enabledLabel,
+                $schedule,
+                $lastRun . ' ' . $status,
                 $nextRun,
             ];
         }
-        $io->table(['Command', 'On', 'Last Status', 'Last Run', 'Next Run'], $taskRows);
 
-        // Recent log history
-        $io->section('Recent Log History');
-
-        $recentLogs = $this->stateManager->readAllLogs(5);
-        if (empty($recentLogs)) {
-            $io->writeln('  No execution history yet.');
-        } else {
-            $rows = [];
-            foreach ($recentLogs as $log) {
-                $logStatus = match ($log['status'] ?? null) {
-                    'success' => '<info>success</info>',
-                    'failed' => '<fg=red>failed</>',
-                    default => $log['status'] ?? '-',
-                };
-                $rows[] = [
-                    $log['command'] ?? 'unknown',
-                    $log['startedAt'] ?? '-',
-                    $logStatus,
-                    isset($log['duration']) ? \sprintf('%.3fs', $log['duration']) : '-',
-                ];
-            }
-            $io->table(['Command', 'Started', 'Status', 'Duration'], $rows);
-        }
+        $io->table(['Command', 'On', 'Schedule', 'Last Run', 'Next Run'], $taskRows);
 
         return Command::SUCCESS;
     }

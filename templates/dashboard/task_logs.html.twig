@@ -25,9 +25,28 @@
             All Execution Logs
         {% endif %}
     </h2>
-    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#logs-help" aria-expanded="false">
-        <i class="fa fa-circle-question"></i> Help
-    </button>
+    <div class="d-flex gap-2">
+        {% if logs is not empty %}
+            {% if command %}
+                <form method="post" action="{{ path('caeligo_scheduler_task_logs_clear', { command: command }) }}" onsubmit="return confirm('Clear all logs for {{ command }}?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('scheduler_clear_logs_' ~ command) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="fa fa-trash"></i> Clear Logs
+                    </button>
+                </form>
+            {% else %}
+                <form method="post" action="{{ path('caeligo_scheduler_logs_clear') }}" onsubmit="return confirm('Clear ALL scheduler logs?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('scheduler_clear_all_logs') }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="fa fa-trash"></i> Clear All Logs
+                    </button>
+                </form>
+            {% endif %}
+        {% endif %}
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#logs-help" aria-expanded="false">
+            <i class="fa fa-circle-question"></i> Help
+        </button>
+    </div>
 </div>
 
 <div class="collapse mb-4" id="logs-help">
