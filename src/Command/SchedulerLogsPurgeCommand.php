@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'caeligo:scheduler:logs:purge',
+    name: 'caeligo:scheduler:purge-logs',
     description: 'Purge scheduler execution logs (all or for a specific command)',
 )]
 class SchedulerLogsPurgeCommand extends Command
