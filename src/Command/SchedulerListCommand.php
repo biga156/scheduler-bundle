@@ -60,8 +60,14 @@ class SchedulerListCommand extends Command
             $lastRun = 'never';
             if ($task['lastRunAt'] !== null) {
                 $dt = new \DateTimeImmutable($task['lastRunAt']);
-                $status = $task['lastRunStatus'] ?? 'unknown';
-                $lastRun = $dt->format('H:i') . " ({$status})";
+                $status = match ($task['lastRunStatus']) {
+                    'success' => '<info>success</info>',
+                    'failed' => '<fg=red>failed</>',
+                    'running' => '<fg=yellow>running</>',
+                    'skipped' => '<fg=gray>skipped</>',
+                    default => $task['lastRunStatus'] ?? 'unknown',
+                };
+                $lastRun = $dt->format('H:i') . ' (' . $status . ')';
             }
 
             $rows[] = [

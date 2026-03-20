@@ -58,9 +58,44 @@ class SchedulerStatusCommand extends Command
         $io->newLine();
         $io->writeln(\sprintf('  Tasks:   %d total, %d enabled, %d failed', $total, $enabled, $failed));
 
-        // Last runs
+        // Per-task current status (matches UI)
         $io->newLine();
-        $io->section('Recent Activity');
+        $io->section('Task Status');
+
+        $taskRows = [];
+        foreach ($tasks as $task) {
+            $status = match ($task['lastRunStatus']) {
+                'success' => '<info>success</info>',
+                'failed' => '<fg=red>failed</>',
+                'running' => '<fg=yellow>running</>',
+                'skipped' => '<fg=gray>skipped</>',
+                default => $task['lastRunStatus'] ?? '<fg=gray>never</>',
+            };
+
+            $lastRun = '-';
+            if ($task['lastRunAt'] !== null) {
+                $dt = new \DateTimeImmutable($task['lastRunAt']);
+                $lastRun = $dt->format('Y-m-d H:i');
+            }
+
+            $nextRun = '-';
+            if ($task['nextRunAt'] !== null) {
+                $dt = new \DateTimeImmutable($task['nextRunAt']);
+                $nextRun = $dt->format('Y-m-d H:i');
+            }
+
+            $taskRows[] = [
+                $task['commandName'],
+                $task['enabled'] ? '<info>✓</info>' : '<fg=red>✗</>',
+                $status,
+                $lastRun,
+                $nextRun,
+            ];
+        }
+        $io->table(['Command', 'On', 'Last Status', 'Last Run', 'Next Run'], $taskRows);
+
+        // Recent log history
+        $io->section('Recent Log History');
 
         $recentLogs = $this->stateManager->readAllLogs(5);
         if (empty($recentLogs)) {
@@ -68,10 +103,15 @@ class SchedulerStatusCommand extends Command
         } else {
             $rows = [];
             foreach ($recentLogs as $log) {
+                $logStatus = match ($log['status'] ?? null) {
+                    'success' => '<info>success</info>',
+                    'failed' => '<fg=red>failed</>',
+                    default => $log['status'] ?? '-',
+                };
                 $rows[] = [
                     $log['command'] ?? 'unknown',
                     $log['startedAt'] ?? '-',
-                    $log['status'] ?? '-',
+                    $logStatus,
                     isset($log['duration']) ? \sprintf('%.3fs', $log['duration']) : '-',
                 ];
             }
