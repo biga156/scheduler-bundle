@@ -203,7 +203,32 @@ class TaskDispatcher
                 $defaults['expression'] = $info['defaultExpression'];
                 $defaults['intervalSeconds'] = $info['defaultInterval'];
 
+                $nextRun = $this->cronParser->calculateNextRun(
+                    $info['defaultExpression'],
+                    $info['defaultInterval'],
+                );
+                if ($nextRun !== null) {
+                    $defaults['nextRunAt'] = $nextRun->format(\DateTimeInterface::ATOM);
+                }
+
                 $this->stateManager->updateTaskState($commandName, $defaults);
+            } else {
+                $taskState = $state[$commandName];
+
+                if (($taskState['nextRunAt'] ?? null) === null) {
+                    $expression = $taskState['expression'] ?? $info['defaultExpression'];
+                    $intervalSeconds = $taskState['intervalSeconds'] ?? $info['defaultInterval'];
+                    $lastRun = isset($taskState['lastRunAt'])
+                        ? new \DateTimeImmutable($taskState['lastRunAt'])
+                        : null;
+
+                    $nextRun = $this->cronParser->calculateNextRun($expression, $intervalSeconds, $lastRun);
+                    if ($nextRun !== null) {
+                        $this->stateManager->updateTaskState($commandName, [
+                            'nextRunAt' => $nextRun->format(\DateTimeInterface::ATOM),
+                        ]);
+                    }
+                }
             }
         }
     }

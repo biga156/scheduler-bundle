@@ -5,7 +5,39 @@
 {% block body %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">Scheduled Tasks</h2>
-    <span class="text-muted">{{ tasks|length }} task{{ tasks|length != 1 ? 's' : '' }} discovered</span>
+    <div>
+        <span class="text-muted me-2">{{ tasks|length }} task{{ tasks|length != 1 ? 's' : '' }} discovered</span>
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#scheduler-help" aria-expanded="false">
+            <i class="fa fa-circle-question"></i> Help
+        </button>
+    </div>
+</div>
+
+<div class="collapse mb-4" id="scheduler-help">
+    <div class="card">
+        <div class="card-body">
+            <h6 class="card-title"><i class="fa fa-circle-info"></i> How the Scheduler works</h6>
+            <p>This page lists all Symfony console commands decorated with <code>#[AsSchedulableCommand]</code>. Each task can be configured, enabled/disabled, and executed from here.</p>
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Enabled / Disabled</dt>
+                <dd class="col-sm-9">Click the <strong>✓</strong> (green) or <strong>✗</strong> (gray) button in the <em>Enabled</em> column to toggle a task on or off. Disabled tasks will not run on schedule, but can still be triggered manually.</dd>
+                <dt class="col-sm-3">Schedule</dt>
+                <dd class="col-sm-9">Shows the cron expression or simple interval that determines when the task runs. Click <strong>Edit</strong> to change it.</dd>
+                <dt class="col-sm-3">Last Run</dt>
+                <dd class="col-sm-9">Shows the result of the last execution (Success, Failed, Running, Skipped) and how long ago it happened.</dd>
+                <dt class="col-sm-3">Next Run</dt>
+                <dd class="col-sm-9">The estimated next execution time, calculated from the schedule and the last run time.</dd>
+                <dt class="col-sm-3">Actions</dt>
+                <dd class="col-sm-9">
+                    <strong>Edit</strong> — Configure the schedule, arguments, timeout and other options.<br>
+                    <strong>Run</strong> — Execute the task immediately (regardless of schedule or enabled state).<br>
+                    <strong>Logs</strong> — View execution history and output for this task.
+                </dd>
+                <dt class="col-sm-3">Groups</dt>
+                <dd class="col-sm-9">Tasks are grouped by the <code>group</code> attribute of <code>#[AsSchedulableCommand]</code>. This helps organize related tasks visually.</dd>
+            </dl>
+        </div>
+    </div>
 </div>
 
 {% if tasks is empty %}

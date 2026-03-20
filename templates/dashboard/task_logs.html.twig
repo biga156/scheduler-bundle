@@ -14,16 +14,46 @@
     </ol>
 </nav>
 
-<h2 class="mb-4">
-    {% if command %}
-        Execution Logs: <code>{{ command }}</code>
-        {% if command_info %}
-            <small class="text-muted d-block fs-6">{{ command_info.description }}</small>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">
+        {% if command %}
+            Execution Logs: <code>{{ command }}</code>
+            {% if command_info %}
+                <small class="text-muted d-block fs-6">{{ command_info.description }}</small>
+            {% endif %}
+        {% else %}
+            All Execution Logs
         {% endif %}
-    {% else %}
-        All Execution Logs
-    {% endif %}
-</h2>
+    </h2>
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#logs-help" aria-expanded="false">
+        <i class="fa fa-circle-question"></i> Help
+    </button>
+</div>
+
+<div class="collapse mb-4" id="logs-help">
+    <div class="card">
+        <div class="card-body">
+            <h6 class="card-title"><i class="fa fa-circle-info"></i> Reading execution logs</h6>
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Started At</dt>
+                <dd class="col-sm-9">When the task execution began.</dd>
+                <dt class="col-sm-3">Duration</dt>
+                <dd class="col-sm-9">How long the execution took (shown in ms, seconds, or minutes).</dd>
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-success">Success</span> — Completed with exit code 0.<br>
+                    <span class="badge bg-danger">Failed</span> — Exited with a non-zero exit code.<br>
+                    <span class="badge bg-warning">Running</span> — Currently in progress.<br>
+                    <span class="badge bg-secondary">Skipped</span> — Was skipped (e.g. overlap prevention).
+                </dd>
+                <dt class="col-sm-3">Exit Code</dt>
+                <dd class="col-sm-9">The process exit code. <code>0</code> = success, any other value indicates an error.</dd>
+                <dt class="col-sm-3">Output</dt>
+                <dd class="col-sm-9">Click <strong>Show</strong> to expand the stdout and stderr output captured during execution.</dd>
+            </dl>
+        </div>
+    </div>
+</div>
 
 {% if logs is empty %}
     <div class="alert alert-info">No execution logs found.</div>
