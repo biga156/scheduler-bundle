@@ -101,7 +101,32 @@ class SchedulerExtension extends AbstractExtension
         $diff = $now->getTimestamp() - $date->getTimestamp();
 
         if ($diff < 0) {
-            return 'In the future';
+            $absDiff = abs($diff);
+
+            if ($absDiff < 60) {
+                return 'In less than a minute';
+            }
+
+            if ($absDiff < 3600) {
+                $minutes = (int) ($absDiff / 60);
+
+                return \sprintf('In %d minute%s', $minutes, $minutes !== 1 ? 's' : '');
+            }
+
+            if ($absDiff < 86400) {
+                $hours = (int) ($absDiff / 3600);
+                $remainMinutes = (int) (($absDiff % 3600) / 60);
+
+                if ($remainMinutes > 0) {
+                    return \sprintf('In %dh %dm', $hours, $remainMinutes);
+                }
+
+                return \sprintf('In %d hour%s', $hours, $hours !== 1 ? 's' : '');
+            }
+
+            $days = (int) ($absDiff / 86400);
+
+            return \sprintf('In %d day%s', $days, $days !== 1 ? 's' : '');
         }
 
         if ($diff < 60) {

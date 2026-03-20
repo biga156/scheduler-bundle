@@ -51,7 +51,8 @@
                     </td>
                     <td>
                         {% if task.nextRunAt %}
-                            <small>{{ task.nextRunAt|scheduler_ago }}</small>
+                            <small title="{{ task.nextRunAt }}">{{ task.nextRunAt|scheduler_ago }}</small>
+                            <small class="text-muted d-block" style="font-size:0.75em">{{ task.nextRunAt|date('Y-m-d H:i') }}</small>
                         {% else %}
                             <span class="text-muted">-</span>
                         {% endif %}

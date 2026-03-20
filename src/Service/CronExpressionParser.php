@@ -62,33 +62,69 @@ class CronExpressionParser
 
         [$minute, $hour, $day, $month, $weekday] = $parts;
 
-        // Common patterns
-        if ($expression === '* * * * *') {
+        $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        $monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // Every minute
+        if ($minute === '*' && $hour === '*' && $day === '*' && $month === '*' && $weekday === '*') {
             return 'Every minute';
         }
-        if ($expression === '*/5 * * * *') {
-            return 'Every 5 minutes';
+
+        // Every N minutes: */N * * * *
+        if (str_starts_with($minute, '*/') && $hour === '*' && $day === '*' && $month === '*' && $weekday === '*') {
+            $n = (int) substr($minute, 2);
+
+            return \sprintf('Every %d minute%s', $n, $n !== 1 ? 's' : '');
         }
-        if ($expression === '*/10 * * * *') {
-            return 'Every 10 minutes';
+
+        // Every hour at :MM
+        if (is_numeric($minute) && $hour === '*' && $day === '*' && $month === '*' && $weekday === '*') {
+            return $minute === '0' ? 'Every hour' : \sprintf('Every hour at :%s', str_pad($minute, 2, '0', \STR_PAD_LEFT));
         }
-        if ($expression === '*/15 * * * *') {
-            return 'Every 15 minutes';
+
+        // Every N hours: 0 */N * * *
+        if (is_numeric($minute) && str_starts_with($hour, '*/') && $day === '*' && $month === '*' && $weekday === '*') {
+            $n = (int) substr($hour, 2);
+
+            return \sprintf('Every %d hour%s at :%s', $n, $n !== 1 ? 's' : '', str_pad($minute, 2, '0', \STR_PAD_LEFT));
         }
-        if ($expression === '*/30 * * * *') {
-            return 'Every 30 minutes';
-        }
-        if ($minute === '0' && $hour === '*' && $day === '*' && $month === '*' && $weekday === '*') {
-            return 'Every hour';
-        }
-        if ($hour !== '*' && $day === '*' && $month === '*' && $weekday === '*') {
-            return \sprintf('Daily at %s:%s', str_pad($hour, 2, '0', \STR_PAD_LEFT), str_pad($minute, 2, '0', \STR_PAD_LEFT));
-        }
-        if ($weekday !== '*' && $day === '*' && $month === '*') {
-            $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        $timeStr = \sprintf('%s:%s', str_pad($hour, 2, '0', \STR_PAD_LEFT), str_pad($minute, 2, '0', \STR_PAD_LEFT));
+
+        // Specific weekday(s): M H * * W
+        if ($weekday !== '*' && $day === '*' && $month === '*' && is_numeric($hour) && is_numeric($minute)) {
+            if (str_contains($weekday, ',')) {
+                $names = array_map(fn ($d) => $dayNames[(int) trim($d)] ?? trim($d), explode(',', $weekday));
+
+                return \sprintf('Weekly on %s at %s', implode(', ', $names), $timeStr);
+            }
             $dayName = $dayNames[(int) $weekday] ?? $weekday;
 
-            return \sprintf('Weekly on %s at %s:%s', $dayName, str_pad($hour, 2, '0', \STR_PAD_LEFT), str_pad($minute, 2, '0', \STR_PAD_LEFT));
+            return \sprintf('Weekly on %s at %s', $dayName, $timeStr);
+        }
+
+        // Monthly on specific day: M H D * *
+        if (is_numeric($day) && $month === '*' && $weekday === '*' && is_numeric($hour) && is_numeric($minute)) {
+            $suffix = match ((int) $day % 10) {
+                1 => (int) $day === 11 ? 'th' : 'st',
+                2 => (int) $day === 12 ? 'th' : 'nd',
+                3 => (int) $day === 13 ? 'th' : 'rd',
+                default => 'th',
+            };
+
+            return \sprintf('Monthly on the %d%s at %s', (int) $day, $suffix, $timeStr);
+        }
+
+        // Daily at specific time: M H * * *
+        if (is_numeric($hour) && is_numeric($minute) && $day === '*' && $month === '*' && $weekday === '*') {
+            return \sprintf('Daily at %s', $timeStr);
+        }
+
+        // Yearly: M H D Mo *
+        if (is_numeric($month) && is_numeric($day) && is_numeric($hour) && is_numeric($minute) && $weekday === '*') {
+            $mo = $monthNames[(int) $month] ?? $month;
+
+            return \sprintf('Yearly on %s %d at %s', $mo, (int) $day, $timeStr);
         }
 
         return $expression;

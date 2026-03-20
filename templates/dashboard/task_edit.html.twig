@@ -94,7 +94,11 @@
                     <input type="text" class="form-control font-monospace" id="expression" name="expression"
                            value="{{ task_state.expression }}" placeholder="0 * * * *">
                     <div id="cron-preview" class="form-text">
-                        Format: minute hour day month weekday. Example: <code>0 * * * *</code> = every hour, <code>*/5 * * * *</code> = every 5 min
+                        {% if task_state.expression %}
+                            <strong>{{ task_state.expression|scheduler_describe }}</strong> — <code>{{ task_state.expression }}</code>
+                        {% else %}
+                            Format: minute hour day month weekday. Example: <code>0 * * * *</code> = every hour, <code>*/5 * * * *</code> = every 5 min
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -192,19 +196,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var cronInput = document.getElementById('expression');
     var presetBtns = document.querySelectorAll('.cron-preset-btn');
-    var cronDescriptions = {
-        '* * * * *': 'Every minute',
-        '*/5 * * * *': 'Every 5 minutes',
-        '*/10 * * * *': 'Every 10 minutes',
-        '*/15 * * * *': 'Every 15 minutes',
-        '*/30 * * * *': 'Every 30 minutes',
-        '0 * * * *': 'Every hour (at :00)',
-        '0 */6 * * *': 'Every 6 hours',
-        '0 */12 * * *': 'Every 12 hours',
-        '0 0 * * *': 'Daily at midnight',
-        '0 0 * * 1': 'Weekly on Monday at midnight',
-        '0 0 1 * *': 'Monthly on the 1st at midnight'
-    };
+
+    function describeCron(expr) {
+        expr = expr.trim();
+        if (!expr) return '';
+        var p = expr.split(/\s+/);
+        if (p.length !== 5) return 'Invalid expression (need 5 fields)';
+        var minute = p[0], hour = p[1], day = p[2], month = p[3], weekday = p[4];
+        var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        var monthNames = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var pad = function(v) { return ('0'+v).slice(-2); };
+        function ordinal(n) { var s=['th','st','nd','rd']; var v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+
+        // Every minute
+        if (minute==='*' && hour==='*' && day==='*' && month==='*' && weekday==='*') return 'Every minute';
+        // Every N minutes
+        if (minute.indexOf('*/')===0 && hour==='*' && day==='*' && month==='*' && weekday==='*') {
+            var n=parseInt(minute.slice(2)); return 'Every '+n+' minute'+(n!==1?'s':'');
+        }
+        // Every hour at :MM
+        if (/^\d+$/.test(minute) && hour==='*' && day==='*' && month==='*' && weekday==='*') {
+            return minute==='0' ? 'Every hour' : 'Every hour at :'+pad(minute);
+        }
+        // Every N hours
+        if (/^\d+$/.test(minute) && hour.indexOf('*/')===0 && day==='*' && month==='*' && weekday==='*') {
+            var n=parseInt(hour.slice(2)); return 'Every '+n+' hour'+(n!==1?'s':'')+' at :'+pad(minute);
+        }
+        var time = pad(hour)+':'+pad(minute);
+        // Weekly on weekday(s)
+        if (weekday!=='*' && day==='*' && month==='*' && /^\d+$/.test(hour) && /^\d+$/.test(minute)) {
+            if (weekday.indexOf(',')>-1) {
+                var names=weekday.split(',').map(function(d){return dayNames[parseInt(d.trim())]||d.trim();});
+                return 'Weekly on '+names.join(', ')+' at '+time;
+            }
+            return 'Weekly on '+(dayNames[parseInt(weekday)]||weekday)+' at '+time;
+        }
+        // Monthly on day
+        if (/^\d+$/.test(day) && month==='*' && weekday==='*' && /^\d+$/.test(hour) && /^\d+$/.test(minute)) {
+            return 'Monthly on the '+ordinal(parseInt(day))+' at '+time;
+        }
+        // Daily at time
+        if (/^\d+$/.test(hour) && /^\d+$/.test(minute) && day==='*' && month==='*' && weekday==='*') {
+            return 'Daily at '+time;
+        }
+        // Yearly
+        if (/^\d+$/.test(month) && /^\d+$/.test(day) && /^\d+$/.test(hour) && /^\d+$/.test(minute) && weekday==='*') {
+            return 'Yearly on '+(monthNames[parseInt(month)]||month)+' '+parseInt(day)+' at '+time;
+        }
+        return 'Custom expression';
+    }
 
     function updatePresetHighlight() {
         var val = cronInput.value.trim();
@@ -218,8 +258,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         var preview = document.getElementById('cron-preview');
-        if (cronDescriptions[val]) {
-            preview.innerHTML = '<strong>' + cronDescriptions[val] + '</strong> — <code>' + val + '</code>';
+        var desc = describeCron(val);
+        if (val && desc) {
+            preview.innerHTML = '<strong>' + desc + '</strong> — <code>' + val + '</code>';
         } else if (val) {
             preview.innerHTML = 'Custom expression: <code>' + val + '</code>';
         } else {
