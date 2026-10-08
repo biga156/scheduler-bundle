@@ -7,10 +7,11 @@ namespace Composer\Autoload;
 class ComposerStaticInita3aedaec3c91fd40e447450cafcfc5b2
 {
     public static $files = array (
-        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '606a39d89246991a373564698c2d8383' => __DIR__ . '/..' . '/symfony/polyfill-php85/bootstrap.php',
+        'deecf9d6b2672fb73429f9b28fdee35f' => __DIR__ . '/..' . '/symfony/polyfill-deepclone/bootstrap.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
@@ -36,6 +37,7 @@ class ComposerStaticInita3aedaec3c91fd40e447450cafcfc5b2
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Intl\\Normalizer\\' => 33,
             'Symfony\\Polyfill\\Intl\\Grapheme\\' => 31,
+            'Symfony\\Polyfill\\DeepClone\\' => 27,
             'Symfony\\Polyfill\\Ctype\\' => 23,
             'Symfony\\Contracts\\Translation\\' => 30,
             'Symfony\\Contracts\\Service\\' => 26,
@@ -111,6 +113,10 @@ class ComposerStaticInita3aedaec3c91fd40e447450cafcfc5b2
         'Symfony\\Polyfill\\Intl\\Grapheme\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme',
+        ),
+        'Symfony\\Polyfill\\DeepClone\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-deepclone',
         ),
         'Symfony\\Polyfill\\Ctype\\' =>
         array (
@@ -288,6 +294,11 @@ class ComposerStaticInita3aedaec3c91fd40e447450cafcfc5b2
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'DeepClone\\ClassNotFoundException' => __DIR__ . '/..' . '/symfony/polyfill-deepclone/Resources/stubs/ClassNotFoundException.php',
+        'DeepClone\\NotInstantiableException' => __DIR__ . '/..' . '/symfony/polyfill-deepclone/Resources/stubs/NotInstantiableException.php',
+        'DelayedTargetValidation' => __DIR__ . '/..' . '/symfony/polyfill-php85/Resources/stubs/DelayedTargetValidation.php',
+        'Filter\\FilterException' => __DIR__ . '/..' . '/symfony/polyfill-php85/Resources/stubs/Filter/FilterException.php',
+        'Filter\\FilterFailedException' => __DIR__ . '/..' . '/symfony/polyfill-php85/Resources/stubs/Filter/FilterFailedException.php',
         'NoDiscard' => __DIR__ . '/..' . '/symfony/polyfill-php85/Resources/stubs/NoDiscard.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
         'PHPUnit\\Event\\Application\\Finished' => __DIR__ . '/..' . '/phpunit/phpunit/src/Event/Events/Application/Finished.php',
@@ -649,8 +660,6 @@ class ComposerStaticInita3aedaec3c91fd40e447450cafcfc5b2
         'PHPUnit\\Framework\\InvalidCoversTargetException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Exception/InvalidCoversTargetException.php',
         'PHPUnit\\Framework\\InvalidDataProviderException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Exception/InvalidDataProviderException.php',
         'PHPUnit\\Framework\\InvalidDependencyException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Exception/InvalidDependencyException.php',
-        'PHPUnit\\Framework\\IsolatedTestRunner' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/TestRunner/IsolatedTestRunner.php',
-        'PHPUnit\\Framework\\IsolatedTestRunnerRegistry' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/TestRunner/IsolatedTestRunnerRegistry.php',
         'PHPUnit\\Framework\\MockObject\\BadMethodCallException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Exception/BadMethodCallException.php',
         'PHPUnit\\Framework\\MockObject\\Builder\\Identity' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Runtime/Builder/Identity.php',
         'PHPUnit\\Framework\\MockObject\\Builder\\InvocationMocker' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/MockObject/Runtime/Builder/InvocationMocker.php',
@@ -1214,7 +1223,6 @@ class ComposerStaticInita3aedaec3c91fd40e447450cafcfc5b2
         'PHPUnit\\Util\\InvalidJsonException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Exception/InvalidJsonException.php',
         'PHPUnit\\Util\\InvalidVersionOperatorException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Exception/InvalidVersionOperatorException.php',
         'PHPUnit\\Util\\Json' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Json.php',
-        'PHPUnit\\Util\\PHP\\DefaultJobRunner' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/PHP/DefaultJobRunner.php',
         'PHPUnit\\Util\\PHP\\Job' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/PHP/Job.php',
         'PHPUnit\\Util\\PHP\\JobRunner' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/PHP/JobRunner.php',
         'PHPUnit\\Util\\PHP\\JobRunnerRegistry' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/PHP/JobRunnerRegistry.php',

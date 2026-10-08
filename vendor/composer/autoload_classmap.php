@@ -7,6 +7,11 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'DeepClone\\ClassNotFoundException' => $vendorDir . '/symfony/polyfill-deepclone/Resources/stubs/ClassNotFoundException.php',
+    'DeepClone\\NotInstantiableException' => $vendorDir . '/symfony/polyfill-deepclone/Resources/stubs/NotInstantiableException.php',
+    'DelayedTargetValidation' => $vendorDir . '/symfony/polyfill-php85/Resources/stubs/DelayedTargetValidation.php',
+    'Filter\\FilterException' => $vendorDir . '/symfony/polyfill-php85/Resources/stubs/Filter/FilterException.php',
+    'Filter\\FilterFailedException' => $vendorDir . '/symfony/polyfill-php85/Resources/stubs/Filter/FilterFailedException.php',
     'NoDiscard' => $vendorDir . '/symfony/polyfill-php85/Resources/stubs/NoDiscard.php',
     'Normalizer' => $vendorDir . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
     'PHPUnit\\Event\\Application\\Finished' => $vendorDir . '/phpunit/phpunit/src/Event/Events/Application/Finished.php',
@@ -368,8 +373,6 @@ return array(
     'PHPUnit\\Framework\\InvalidCoversTargetException' => $vendorDir . '/phpunit/phpunit/src/Framework/Exception/InvalidCoversTargetException.php',
     'PHPUnit\\Framework\\InvalidDataProviderException' => $vendorDir . '/phpunit/phpunit/src/Framework/Exception/InvalidDataProviderException.php',
     'PHPUnit\\Framework\\InvalidDependencyException' => $vendorDir . '/phpunit/phpunit/src/Framework/Exception/InvalidDependencyException.php',
-    'PHPUnit\\Framework\\IsolatedTestRunner' => $vendorDir . '/phpunit/phpunit/src/Framework/TestRunner/IsolatedTestRunner.php',
-    'PHPUnit\\Framework\\IsolatedTestRunnerRegistry' => $vendorDir . '/phpunit/phpunit/src/Framework/TestRunner/IsolatedTestRunnerRegistry.php',
     'PHPUnit\\Framework\\MockObject\\BadMethodCallException' => $vendorDir . '/phpunit/phpunit/src/Framework/MockObject/Exception/BadMethodCallException.php',
     'PHPUnit\\Framework\\MockObject\\Builder\\Identity' => $vendorDir . '/phpunit/phpunit/src/Framework/MockObject/Runtime/Builder/Identity.php',
     'PHPUnit\\Framework\\MockObject\\Builder\\InvocationMocker' => $vendorDir . '/phpunit/phpunit/src/Framework/MockObject/Runtime/Builder/InvocationMocker.php',
@@ -933,7 +936,6 @@ return array(
     'PHPUnit\\Util\\InvalidJsonException' => $vendorDir . '/phpunit/phpunit/src/Util/Exception/InvalidJsonException.php',
     'PHPUnit\\Util\\InvalidVersionOperatorException' => $vendorDir . '/phpunit/phpunit/src/Util/Exception/InvalidVersionOperatorException.php',
     'PHPUnit\\Util\\Json' => $vendorDir . '/phpunit/phpunit/src/Util/Json.php',
-    'PHPUnit\\Util\\PHP\\DefaultJobRunner' => $vendorDir . '/phpunit/phpunit/src/Util/PHP/DefaultJobRunner.php',
     'PHPUnit\\Util\\PHP\\Job' => $vendorDir . '/phpunit/phpunit/src/Util/PHP/Job.php',
     'PHPUnit\\Util\\PHP\\JobRunner' => $vendorDir . '/phpunit/phpunit/src/Util/PHP/JobRunner.php',
     'PHPUnit\\Util\\PHP\\JobRunnerRegistry' => $vendorDir . '/phpunit/phpunit/src/Util/PHP/JobRunnerRegistry.php',

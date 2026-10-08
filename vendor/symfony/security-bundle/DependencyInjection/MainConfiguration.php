@@ -56,35 +56,21 @@ class MainConfiguration implements ConfigurationInterface
 
         $rootNode
             ->docUrl('https://symfony.com/doc/{version:major}.{version:minor}/reference/configuration/security.html', 'symfony/security-bundle')
-            ->beforeNormalization()
-                ->ifArray()
-                ->then(static function ($v) {
-                    if (isset($v['hide_user_not_found']) && isset($v['expose_security_errors'])) {
-                        throw new InvalidConfigurationException('You cannot use both "hide_user_not_found" and "expose_security_errors" at the same time.');
-                    }
-
-                    if (isset($v['hide_user_not_found']) && !isset($v['expose_security_errors'])) {
-                        $v['expose_security_errors'] = $v['hide_user_not_found'] ? ExposeSecurityLevel::None : ExposeSecurityLevel::All;
-                    }
-
-                    return $v;
-                })
-            ->end()
             ->children()
                 ->scalarNode('access_denied_url')->defaultNull()->example('/foo/error403')->end()
                 ->enumNode('session_fixation_strategy')
                     ->values([SessionAuthenticationStrategy::NONE, SessionAuthenticationStrategy::MIGRATE, SessionAuthenticationStrategy::INVALIDATE])
                     ->defaultValue(SessionAuthenticationStrategy::MIGRATE)
                 ->end()
-                ->booleanNode('hide_user_not_found')
-                    ->setDeprecated('symfony/security-bundle', '7.3', 'The "%node%" option is deprecated and will be removed in 8.0. Use the "expose_security_errors" option instead.')
-                ->end()
                 ->enumNode('expose_security_errors')
                     ->beforeNormalization()->ifString()->then(static fn ($v) => ExposeSecurityLevel::tryFrom($v))->end()
                     ->values(ExposeSecurityLevel::cases())
                     ->defaultValue(ExposeSecurityLevel::None)
                 ->end()
-                ->booleanNode('erase_credentials')->defaultTrue()->end()
+                ->booleanNode('erase_credentials')
+                    ->defaultTrue()
+                    ->setDeprecated('symfony/security-bundle', '8.1', 'Setting the "%path%.%node%" configuration option is deprecated. It will be removed in Symfony 9.0, as the "eraseCredentials()" method was removed in Symfony 8.0.')
+                ->end()
                 ->arrayNode('access_decision_manager')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -97,15 +83,15 @@ class MainConfiguration implements ConfigurationInterface
                         ->booleanNode('allow_if_equal_granted_denied')->defaultTrue()->end()
                     ->end()
                     ->validate()
-                        ->ifTrue(fn ($v) => isset($v['strategy'], $v['service']))
+                        ->ifTrue(static fn ($v) => isset($v['strategy'], $v['service']))
                         ->thenInvalid('"strategy" and "service" cannot be used together.')
                     ->end()
                     ->validate()
-                        ->ifTrue(fn ($v) => isset($v['strategy'], $v['strategy_service']))
+                        ->ifTrue(static fn ($v) => isset($v['strategy'], $v['strategy_service']))
                         ->thenInvalid('"strategy" and "strategy_service" cannot be used together.')
                     ->end()
                     ->validate()
-                        ->ifTrue(fn ($v) => isset($v['service'], $v['strategy_service']))
+                        ->ifTrue(static fn ($v) => isset($v['service'], $v['strategy_service']))
                         ->thenInvalid('"service" and "strategy_service" cannot be used together.')
                     ->end()
                 ->end()
@@ -253,7 +239,7 @@ class MainConfiguration implements ConfigurationInterface
                         ->beforeNormalization()->ifString()->then(static fn ($v) => $v ? array_map('trim', explode(',', $v)) : [])->end()
                         ->enumPrototype()
                             ->values([
-                                '*', 'cache', 'cookies', 'storage', 'executionContexts',
+                                '*', 'cache', 'cookies', 'storage', 'clientHints', 'executionContexts', 'prefetchCache', 'prerenderCache',
                             ])
                         ->end()
                     ->end()
@@ -292,8 +278,8 @@ class MainConfiguration implements ConfigurationInterface
                 ->info('A list of badges that must be present on the authenticated passport.')
                 ->validate()
                     ->always()
-                    ->then(function ($requiredBadges) {
-                        return array_map(function ($requiredBadge) {
+                    ->then(static function ($requiredBadges) {
+                        return array_map(static function ($requiredBadge) {
                             if (class_exists($requiredBadge)) {
                                 return $requiredBadge;
                             }
@@ -331,8 +317,8 @@ class MainConfiguration implements ConfigurationInterface
         $firewallNodeBuilder
             ->end()
             ->validate()
-                ->ifTrue(fn ($v) => true === $v['security'] && isset($v['pattern']) && !isset($v['request_matcher']))
-                ->then(function ($firewall) use ($abstractFactoryKeys) {
+                ->ifTrue(static fn ($v) => $v['security'] && isset($v['pattern']) && !isset($v['request_matcher']))
+                ->then(static function ($firewall) use ($abstractFactoryKeys) {
                     foreach ($abstractFactoryKeys as $k) {
                         if (!isset($firewall[$k]['check_path'])) {
                             continue;
@@ -393,11 +379,11 @@ class MainConfiguration implements ConfigurationInterface
 
         $providerNodeBuilder
             ->validate()
-                ->ifTrue(fn ($v) => \count($v) > 1)
+                ->ifTrue(static fn ($v) => \count($v) > 1)
                 ->thenInvalid('You cannot set multiple provider types for the same provider')
             ->end()
             ->validate()
-                ->ifTrue(fn ($v) => 0 === \count($v))
+                ->ifTrue(static fn ($v) => !$v)
                 ->thenInvalid('You must set a provider definition for the provider.')
             ->end()
         ;
@@ -426,7 +412,7 @@ class MainConfiguration implements ConfigurationInterface
                             ->scalarNode('algorithm')
                                 ->cannotBeEmpty()
                                 ->validate()
-                                    ->ifTrue(fn ($v) => !\is_string($v))
+                                    ->ifTrue(static fn ($v) => !\is_string($v))
                                     ->thenInvalid('You must provide a string value.')
                                 ->end()
                             ->end()

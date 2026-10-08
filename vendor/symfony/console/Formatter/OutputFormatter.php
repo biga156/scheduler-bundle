@@ -40,7 +40,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
      */
     public static function escape(string $text): string
     {
-        $text = preg_replace('/([^\\\\]|^)([<>])/', '$1\\\\$2', $text);
+        $text = str_replace(['<', '>'], ['\\<', '\\>'], $text);
 
         return self::escapeTrailingBackslash($text);
     }
@@ -137,11 +137,10 @@ class OutputFormatter implements WrappableOutputFormatterInterface
                 continue;
             }
 
-            // convert byte position to character position.
-            $pos = Helper::length(substr($message, 0, $pos));
-            // add the text up to the next tag
-            $output .= $this->applyCurrentStyle(Helper::substr($message, $offset, $pos - $offset), $output, $width, $currentLineLength);
-            $offset = $pos + Helper::length($text);
+            // tags are delimited by "<" and ">", which are ASCII, so a tag offset can never
+            // fall inside a multibyte sequence: slicing by bytes is safe here
+            $output .= $this->applyCurrentStyle(substr($message, $offset, $pos - $offset), $output, $width, $currentLineLength);
+            $offset = $pos + \strlen($text);
 
             // opening tag?
             if ($open = '/' !== $text[1]) {
@@ -162,7 +161,7 @@ class OutputFormatter implements WrappableOutputFormatterInterface
             }
         }
 
-        $output .= $this->applyCurrentStyle(Helper::substr($message, $offset), $output, $width, $currentLineLength);
+        $output .= $this->applyCurrentStyle(substr($message, $offset), $output, $width, $currentLineLength);
 
         return strtr($output, ["\0" => '\\', '\\<' => '<', '\\>' => '>']);
     }

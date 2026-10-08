@@ -30,10 +30,8 @@ use Symfony\Contracts\Service\ServiceSubscriberInterface;
  * This Router creates the Loader only when the cache is empty.
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @final since Symfony 7.1
  */
-class Router extends BaseRouter implements WarmableInterface, ServiceSubscriberInterface
+final class Router extends BaseRouter implements WarmableInterface, ServiceSubscriberInterface
 {
     private array $collectedParameters = [];
     /**
@@ -178,6 +176,10 @@ class Router extends BaseRouter implements WarmableInterface, ServiceSubscriberI
             }
 
             $resolved = ($this->paramFetcher)($match[1]);
+
+            if (\is_string($resolved) && preg_match('/env_[a-f0-9]{16}_\w+_[a-f0-9]{32}/Ui', $resolved)) {
+                throw new RuntimeException(\sprintf('The container parameter "%s" resolves to an env var, which is not allowed in routing configuration.', $match[1]));
+            }
 
             if (\is_scalar($resolved)) {
                 $this->collectedParameters[$match[1]] = $resolved;

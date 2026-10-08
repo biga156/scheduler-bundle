@@ -15,6 +15,7 @@ use Symfony\Component\Config\Resource\ClassExistenceResource;
 use Symfony\Component\Console\Descriptor\DescriptorInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Alias;
+use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 use Symfony\Component\DependencyInjection\Compiler\AnalyzeServiceReferencesPass;
 use Symfony\Component\DependencyInjection\Compiler\ServiceReferenceGraphEdge;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -49,7 +50,7 @@ abstract class Descriptor implements DescriptorInterface
         }
 
         match (true) {
-            $object instanceof RouteCollection => $this->describeRouteCollection($this->filterRoutesByHttpMethod($object, $options['method'] ?? ''), $options),
+            $object instanceof RouteCollection => $this->describeRouteCollection($this->sortRouteCollection($this->filterRoutesByHttpMethod($object, $options['method'] ?? ''), $options['sort'] ?? null), $options),
             $object instanceof Route => $this->describeRoute($object, $options),
             $object instanceof ParameterBag => $this->describeContainerParameters($object, $options),
             $object instanceof ContainerBuilder && !empty($options['env-vars']) => $this->describeContainerEnvVars($this->getContainerEnvVars($object), $options),
@@ -243,7 +244,7 @@ abstract class Descriptor implements DescriptorInterface
                 }
             }
         }
-        uasort($maxPriority, fn ($a, $b) => $b <=> $a);
+        uasort($maxPriority, static fn ($a, $b) => $b <=> $a);
 
         return array_keys($maxPriority);
     }
@@ -258,9 +259,46 @@ abstract class Descriptor implements DescriptorInterface
         return $sortedTags;
     }
 
+    protected function resolvePriorityServiceTags(ContainerBuilder $container, Definition $definition, ?string $tagName = null): array
+    {
+        $tags = null !== $tagName ? $definition->getTag($tagName) : $definition->getTags();
+
+        if (!$r = $container->getReflectionClass($definition->getClass(), false)) {
+            return $tags;
+        }
+
+        $priority = null;
+        if ($r->hasMethod('getDefaultPriority')) {
+            $rm = $r->getMethod('getDefaultPriority');
+            if ($rm->isPublic() && $rm->isStatic() && !$rm->isAbstract() && \is_int($defaultPriority = $rm->invoke(null))) {
+                $priority = $defaultPriority;
+            }
+        } elseif ($definition->isAutoconfigured() && !$definition->hasTag('container.ignore_attributes')) {
+            $priority = ($r->getAttributes(AsTaggedItem::class)[0] ?? null)?->newInstance()->priority;
+        }
+
+        if (!$priority) {
+            return $tags;
+        }
+
+        if (null !== $tagName) {
+            foreach ($tags as &$tag) {
+                $tag['priority'] ??= $priority;
+            }
+        } else {
+            foreach ($tags as &$tagConfigs) {
+                foreach ($tagConfigs as &$tag) {
+                    $tag['priority'] ??= $priority;
+                }
+            }
+        }
+
+        return $tags;
+    }
+
     protected function sortByPriority(array $tag): array
     {
-        usort($tag, fn ($a, $b) => ($b['priority'] ?? 0) <=> ($a['priority'] ?? 0));
+        usort($tag, static fn ($a, $b) => ($b['priority'] ?? 0) <=> ($a['priority'] ?? 0));
 
         return $tag;
     }
@@ -353,12 +391,42 @@ abstract class Descriptor implements DescriptorInterface
     {
         try {
             return array_values(array_unique(array_map(
-                fn (ServiceReferenceGraphEdge $edge) => $edge->getSourceNode()->getId(),
+                static fn (ServiceReferenceGraphEdge $edge) => $edge->getSourceNode()->getId(),
                 $container->getCompiler()->getServiceReferenceGraph()->getNode($serviceId)->getInEdges()
             )));
         } catch (InvalidArgumentException $exception) {
             return [];
         }
+    }
+
+    /**
+     * @return array<array{id: string, class: ?string, priority: int}>
+     */
+    protected function getDecorationStack(ContainerBuilder $container, string $id): array
+    {
+        $stack = [];
+
+        while ($container->hasDefinition($id) || $container->hasAlias($id)) {
+            // resolve Alias and continue
+            if ($container->hasAlias($id)) {
+                $id = (string) $container->getAlias($id);
+                continue;
+            }
+
+            $definition = $container->getDefinition($id);
+            $class = $definition->getClass();
+            $priority = $definition->decorationPriority ?? 0;
+
+            $stack[] = ['id' => $id, 'class' => $class, 'priority' => $priority];
+
+            if (!$nextId = $definition->innerServiceId) {
+                break;
+            }
+
+            $id = $nextId;
+        }
+
+        return $stack;
     }
 
     private function filterRoutesByHttpMethod(RouteCollection $routes, string $method): RouteCollection
@@ -375,5 +443,45 @@ abstract class Descriptor implements DescriptorInterface
         }
 
         return $filteredRoutes;
+    }
+
+    private function sortRouteCollection(RouteCollection $routes, ?string $sort): RouteCollection
+    {
+        if (null === $sort) {
+            return $routes;
+        }
+
+        $sort = strtolower($sort);
+        $routesArray = $routes->all();
+
+        $getSortValue = match ($sort) {
+            'name' => static fn (string $name, Route $route) => strtolower($name),
+            'path' => static fn (string $name, Route $route) => strtolower($route->getPath()),
+            'method' => static fn (string $name, Route $route) => $route->getMethods() ? strtolower(implode('|', $route->getMethods())) : '',
+            'scheme' => static fn (string $name, Route $route) => $route->getSchemes() ? strtolower(implode('|', $route->getSchemes())) : '',
+            'host' => static fn (string $name, Route $route) => strtolower($route->getHost()),
+            default => throw new \InvalidArgumentException(\sprintf('The sort column "%s" is not supported.', $sort)),
+        };
+
+        $sortValues = [];
+        foreach ($routesArray as $name => $route) {
+            $sortValues[$name] = $getSortValue($name, $route);
+        }
+        asort($sortValues);
+
+        $sortedRoutes = new RouteCollection();
+        foreach (array_keys($sortValues) as $name) {
+            $sortedRoutes->add($name, $routesArray[$name]);
+        }
+
+        foreach ($routes->getAliases() as $aliasName => $alias) {
+            $newAlias = $sortedRoutes->addAlias($aliasName, $alias->getId());
+            if ($alias->isDeprecated()) {
+                $deprecation = $alias->getDeprecation($aliasName);
+                $newAlias->setDeprecated($deprecation['package'], $deprecation['version'], str_replace($aliasName, '%alias_id%', $deprecation['message']));
+            }
+        }
+
+        return $sortedRoutes;
     }
 }

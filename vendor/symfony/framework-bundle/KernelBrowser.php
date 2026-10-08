@@ -84,7 +84,7 @@ class KernelBrowser extends HttpKernelBrowser
         $session->start();
 
         if (!$cookie instanceof Cookie) {
-            $domains = array_unique(array_map(fn (Cookie $cookie) => $cookie->getName() === $session->getName() ? $cookie->getDomain() : '', $cookieJar->all())) ?: [''];
+            $domains = array_unique(array_map(static fn (Cookie $cookie) => $cookie->getName() === $session->getName() ? $cookie->getDomain() : '', $cookieJar->all())) ?: [''];
             foreach ($domains as $domain) {
                 $cookieJar->set(new Cookie($session->getName(), $session->getId(), domain: $domain));
             }
@@ -150,7 +150,15 @@ class KernelBrowser extends HttpKernelBrowser
             return $this;
         }
 
-        $session->set('_security_'.$firewallContext, serialize($token));
+        try {
+            $session->set('_security_'.$firewallContext, serialize($token));
+        } catch (\Throwable $e) {
+            $hint = method_exists($user, '__serialize')
+                ? 'Review the "__serialize()" implementation to exclude any fields that cannot or should not be persisted there'
+                : 'Implement "__serialize()"/"__unserialize()" to control what is serialized into the session, and exclude any fields that should not be persisted there';
+
+            throw new \LogicException(\sprintf('Cannot store the security token in the session: the user object of class "%s" (or one of its referenced objects) is not serializable. %s (e.g. Doctrine relations). See https://symfony.com/doc/current/security.html#understanding-how-users-are-refreshed-from-the-session for details.', $user::class, $hint), 0, $e);
+        }
         $session->save();
 
         return $this;

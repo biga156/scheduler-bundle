@@ -64,6 +64,7 @@ class EventDispatcherDebugCommand extends Command
                 The <info>--format</info> option specifies the format of the command output:
 
                   <info>php %command.full_name% --format=json</info>
+
                 EOF
             )
         ;
@@ -92,7 +93,7 @@ class EventDispatcherDebugCommand extends Command
             } else {
                 // if there is no direct match, try find partial matches
                 $events = $this->searchForEvent($dispatcher, $event);
-                if (0 === \count($events)) {
+                if (!$events) {
                     $io->getErrorStyle()->warning(\sprintf('The event "%s" does not have any registered listeners.', $event));
 
                     return 0;
