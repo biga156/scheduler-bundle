@@ -3,7 +3,7 @@
         'name' => 'caeligo/scheduler-bundle',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'a732619f3dc812afa92eba5fb5ab9dc5bc5a1f9e',
+        'reference' => '12400de753c6a03f6d31a5bdfe71bc95e945b80f',
         'type' => 'symfony-bundle',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(
@@ -15,7 +15,7 @@
         'caeligo/scheduler-bundle' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'a732619f3dc812afa92eba5fb5ab9dc5bc5a1f9e',
+            'reference' => '12400de753c6a03f6d31a5bdfe71bc95e945b80f',
             'type' => 'symfony-bundle',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(
